@@ -1,0 +1,124 @@
+{
+  "repository": {
+    "url": "https://github.com/example/project",
+    "name": "example/project",
+    "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "assessment": {
+    "total_score": 5,
+    "maximum_score": 6,
+    "percentage": 83.33,
+    "criteria": [
+      {
+        "criterion": "responsible_ai",
+        "execution_status": "completed",
+        "score": 1,
+        "maximum_score": 2,
+        "status": "partially_meets",
+        "summary": "Há validação explícita de entrada, mas a cobertura deve ser aprofundada.",
+        "evidence": [
+          {
+            "file": "safety.py",
+            "description": "Há validação explícita de entrada, mas a cobertura deve ser aprofundada.",
+            "line": 15,
+            "snippet": "def validate_input(request):"
+          }
+        ],
+        "recommendations": [
+          "Ampliar testes de validação de entrada e saída."
+        ],
+        "mechanisms": []
+      },
+      {
+        "criterion": "software_architecture",
+        "execution_status": "completed",
+        "score": 2,
+        "maximum_score": 2,
+        "status": "meets",
+        "summary": "A aplicação recebe provider e configuração por injeção de dependências.",
+        "evidence": [
+          {
+            "file": "app.py",
+            "description": "A aplicação recebe provider e configuração por injeção de dependências.",
+            "line": 7,
+            "snippet": "    def __init__(self, provider=None, settings=None):"
+          }
+        ],
+        "recommendations": [],
+        "mechanisms": []
+      },
+      {
+        "criterion": "engineering_mechanisms",
+        "execution_status": "completed",
+        "score": 2,
+        "maximum_score": 2,
+        "status": "meets",
+        "summary": "A integração externa aplica timeout e tentativas limitadas.",
+        "evidence": [
+          {
+            "file": "providers.py",
+            "description": "A integração externa aplica timeout e tentativas limitadas.",
+            "line": 18,
+            "snippet": "                response = self.session.post(self.settings.model_url, json={\"prompt\": message}, timeout=self.settings.timeout)"
+          }
+        ],
+        "recommendations": [],
+        "mechanisms": [
+          {
+            "mechanism": "timeout",
+            "implemented": true,
+            "evidence": [
+              {
+                "file": "providers.py",
+                "description": "A integração externa aplica timeout e tentativas limitadas.",
+                "line": 18,
+                "snippet": "                response = self.session.post(self.settings.model_url, json={\"prompt\": message}, timeout=self.settings.timeout)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "summary": "responsible_ai: Há validação explícita de entrada, mas a cobertura deve ser aprofundada. software_architecture: A aplicação recebe provider e configuração por injeção de dependências. engineering_mechanisms: A integração externa aplica timeout e tentativas limitadas.",
+  "metadata": {
+    "execution_id": "11111111-1111-4111-8111-111111111111",
+    "assessment_version": "1.0",
+    "prompt_version": "1.0",
+    "files_analyzed": 5,
+    "provider": "openai",
+    "model": "illustrative-example",
+    "created_at": "2026-09-18T00:00:00+00:00",
+    "coverage": {
+      "limitations": "Exemplo ilustrativo de contrato baseado nas fixtures; não representa uma avaliação real de modelo.",
+      "evaluators": {
+        "responsible_ai": {
+          "presented": {
+            "safety.py": [
+              15
+            ]
+          }
+        },
+        "software_architecture": {
+          "presented": {
+            "app.py": [
+              7
+            ]
+          }
+        },
+        "engineering_mechanisms": {
+          "presented": {
+            "providers.py": [
+              18
+            ]
+          }
+        }
+      }
+    },
+    "recommendations": [
+      "Ampliar testes de validação de entrada e saída."
+    ]
+  },
+  "execution_status": "completed",
+  "errors": []
+}
