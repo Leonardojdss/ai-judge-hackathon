@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["live: requires explicit opt-in, credentials and external model access"]
+filterwarnings = ["ignore:`langchain-community` is being sunset:DeprecationWarning"]

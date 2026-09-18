@@ -1,0 +1,113 @@
+{
+  "repository": {
+    "url": "https://github.com/example/project",
+    "name": "example/project",
+    "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "assessment": {
+    "total_score": null,
+    "maximum_score": 6,
+    "percentage": null,
+    "criteria": [
+      {
+        "criterion": "responsible_ai",
+        "execution_status": "failed",
+        "score": null,
+        "maximum_score": 2,
+        "status": null,
+        "summary": "Avaliação indisponível por falha; nenhuma nota foi atribuída.",
+        "evidence": [],
+        "recommendations": [],
+        "mechanisms": []
+      },
+      {
+        "criterion": "software_architecture",
+        "execution_status": "completed",
+        "score": 2,
+        "maximum_score": 2,
+        "status": "meets",
+        "summary": "A aplicação recebe provider e configuração por injeção de dependências.",
+        "evidence": [
+          {
+            "file": "app.py",
+            "description": "A aplicação recebe provider e configuração por injeção de dependências.",
+            "line": 7,
+            "snippet": "    def __init__(self, provider=None, settings=None):"
+          }
+        ],
+        "recommendations": [],
+        "mechanisms": []
+      },
+      {
+        "criterion": "engineering_mechanisms",
+        "execution_status": "completed",
+        "score": 2,
+        "maximum_score": 2,
+        "status": "meets",
+        "summary": "A integração externa aplica timeout e tentativas limitadas.",
+        "evidence": [
+          {
+            "file": "providers.py",
+            "description": "A integração externa aplica timeout e tentativas limitadas.",
+            "line": 18,
+            "snippet": "                response = self.session.post(self.settings.model_url, json={\"prompt\": message}, timeout=self.settings.timeout)"
+          }
+        ],
+        "recommendations": [],
+        "mechanisms": [
+          {
+            "mechanism": "timeout",
+            "implemented": true,
+            "evidence": [
+              {
+                "file": "providers.py",
+                "description": "A integração externa aplica timeout e tentativas limitadas.",
+                "line": 18,
+                "snippet": "                response = self.session.post(self.settings.model_url, json={\"prompt\": message}, timeout=self.settings.timeout)"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "summary": "Avaliação incompleta; pontuação consolidada indisponível. responsible_ai: Avaliação indisponível por falha; nenhuma nota foi atribuída. software_architecture: A aplicação recebe provider e configuração por injeção de dependências. engineering_mechanisms: A integração externa aplica timeout e tentativas limitadas.",
+  "metadata": {
+    "execution_id": "22222222-2222-4222-8222-222222222222",
+    "assessment_version": "1.0",
+    "prompt_version": "1.0",
+    "files_analyzed": 5,
+    "provider": "openai",
+    "model": "illustrative-example",
+    "created_at": "2026-09-18T00:00:00+00:00",
+    "coverage": {
+      "limitations": "Exemplo ilustrativo de contrato baseado nas fixtures; não representa uma avaliação real de modelo.",
+      "evaluators": {
+        "responsible_ai": {},
+        "software_architecture": {
+          "presented": {
+            "app.py": [
+              7
+            ]
+          }
+        },
+        "engineering_mechanisms": {
+          "presented": {
+            "providers.py": [
+              18
+            ]
+          }
+        }
+      }
+    },
+    "recommendations": []
+  },
+  "execution_status": "partial",
+  "errors": [
+    {
+      "node": "responsible_ai",
+      "type": "MODEL_TIMEOUT",
+      "message": "Falha ao executar avaliação com o modelo."
+    }
+  ]
+}
