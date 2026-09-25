@@ -1,9 +1,8 @@
-from src.config.settings import Settings
 from src.utils.errors import AssessmentError
 from src.workflow_agentic.tools.repository_tools import TERMS, exclusion_reason, imported_paths, priority, read_repository_file
 
 
-def build_context(provider, tree: list[dict], initial: dict[str, str], settings: Settings) -> dict:
+def build_context(provider, tree: list[dict], initial: dict[str, str]) -> dict:
     files = dict(initial)
     omitted = []
     eligible = []
@@ -13,8 +12,6 @@ def build_context(provider, tree: list[dict], initial: dict[str, str], settings:
         reason = exclusion_reason(path)
         if entry.get("mode") == "120000":
             reason = "symlink"
-        if entry.get("size", 0) > settings.MAX_FILE_BYTES:
-            reason = "file_size_limit"
         if reason:
             omitted.append({"file": path, "reason": reason})
         elif path not in files:
@@ -22,21 +19,13 @@ def build_context(provider, tree: list[dict], initial: dict[str, str], settings:
     available = set(eligible) | set(files)
     pending = sorted(eligible, key=priority)
     hits = {}
-    read_count = len(files)
     errors = []
     last_external_error = None
     while pending:
         path = pending.pop(0)
-        if read_count >= settings.MAX_FILES or total_bytes >= settings.MAX_TOTAL_BYTES:
-            omitted.extend({"file": p, "reason": "read_budget"} for p in [path, *pending])
-            break
-        read_count += 1
         try:
             content = read_repository_file(provider, path)
             size = len(content.encode())
-            if size > settings.MAX_FILE_BYTES or size + total_bytes > settings.MAX_TOTAL_BYTES:
-                omitted.append({"file": path, "reason": "read_budget"})
-                continue
         except AssessmentError as exc:
             omitted.append({"file": path, "reason": exc.code})
             if exc.code == "REPOSITORY_AUTH":

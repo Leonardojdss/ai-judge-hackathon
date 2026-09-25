@@ -13,7 +13,7 @@ def get_langfuse_client(settings):
                         secret_key=settings.LANGFUSE_SECRET_KEY.get_secret_value(),
                         base_url=settings.LANGFUSE_HOST,
                         # Defense in depth: no prompts, code or results leave via IO.
-                        mask=lambda data, **kwargs: "[REDACTED]", timeout=5)
+                        mask=lambda data, **kwargs: "[REDACTED]")
     except Exception:
         logger.warning("Langfuse indisponível; execução continuará com logs locais.")
         return None

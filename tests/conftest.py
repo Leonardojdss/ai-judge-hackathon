@@ -6,12 +6,14 @@ import pytest
 
 from src.config.settings import Settings
 from src.utils.errors import AssessmentError
+from src.workflow_agentic.registry import EVALUATORS
 
 
 @pytest.fixture
 def settings(tmp_path):
     return Settings(_env_file=None, ASSESSMENT_OUTPUT_DIR=tmp_path / "results",
-                    RETRY_DELAY=0, OPENAI_API_KEY="test-only", LLM_MODEL="test-model")
+                    OPENAI_API_KEY="test-only", LLM_MODEL="test-model",
+                    CRITERION_RETRY_DELAY=0)
 
 
 class FakeRepository:
@@ -43,12 +45,28 @@ class FakeRepository:
 
 
 def assessment_result(criterion, score=0, file="src/main.py", snippet="def main():", line=1):
-    evidence = [{"file": file, "description": "Implementação concreta observada.", "line": line, "snippet": snippet}] if score else []
-    return {"criterion": criterion, "score": score,
-            "status": ["does_not_meet", "partially_meets", "meets"][score],
-            "summary": "Resultado limitado aos arquivos analisados.", "evidence": evidence,
-            "recommendations": ["Ampliar testes."],
-            "mechanisms": [{"mechanism": "validation", "implemented": True, "evidence": evidence}] if criterion == "engineering_mechanisms" and score else []}
+    scores = score if isinstance(score, list) else [score] * 5
+    return {"criterion": criterion,
+            "summary": "Resultado limitado aos arquivos analisados.",
+            "questions": [{
+                "question_id": i, "score": value,
+                "status": ["does_not_meet", "partially_meets", "meets"][value],
+                "reason": "Justificativa baseada no material analisado.",
+                "evidence": [{"file": file, "description": "Implementação concreta observada.",
+                              "line": line, "snippet": snippet}] if value else [],
+            } for i, value in enumerate(scores, 1)]}
+
+
+def model_assessment_output(criterion, score=0, file="src/main.py",
+                            snippet="def main():", line=1):
+    result = assessment_result(criterion, score, file, snippet, line)
+    return {
+        "summary": result["summary"],
+        "questions": [
+            {key: value for key, value in question.items() if key != "status"}
+            for question in result["questions"]
+        ],
+    }
 
 
 class FakeAgents:
@@ -61,7 +79,7 @@ class FakeAgents:
 
     async def evaluate(self, criterion, prompt, state):
         self.calls.append(criterion)
-        if len(self.calls) == 3:
+        if len(self.calls) == len(EVALUATORS):
             self.ready.set()
         if self.barrier:
             await asyncio.wait_for(self.ready.wait(), timeout=2)
