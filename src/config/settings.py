@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: SecretStr | None = None
     GEMINI_API_KEY: SecretStr | None = None
     AWS_REGION: str = "us-east-1"
+    AWS_BEARER_TOKEN_BEDROCK: SecretStr | None = None
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     GITHUB_APP_ID: str = ""
     GITHUB_APP_PRIVATE_KEY: SecretStr | None = None

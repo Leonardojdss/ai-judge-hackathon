@@ -127,6 +127,8 @@ class Agents:
                     if attempt == max_attempts or not is_transient_model_error(exc):
                         raise
                     delay = self.settings.CRITERION_RETRY_DELAY * 2 ** (attempt - 1)
+                    logger.warning("Transient model error [%s] attempt %d: %s: %s",
+                                   criterion, attempt, type(exc).__name__, exc)
                     log_stage(logger, "criterion_retry", "Falha transitória do modelo; nova tentativa agendada.",
                               execution_id=execution_id, node=criterion,
                               retry_kind="transient_model_error",
@@ -159,6 +161,7 @@ class Agents:
                 log_guardrail(coverage, criterion, state.get("execution_id"))
         except Exception as exc:
             code = "MODEL_TIMEOUT" if isinstance(exc, TimeoutError) or "Timeout" in type(exc).__name__ else "MODEL_ERROR"
+            logger.error("Unhandled model exception [%s] %s: %s", criterion, type(exc).__name__, exc, exc_info=True)
             error = AssessmentError(code, "Falha ao executar avaliação com o modelo.")
         error.coverage = coverage
         raise error from None
