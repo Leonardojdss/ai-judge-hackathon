@@ -38,8 +38,8 @@ def test_selects_repo_installation_and_pins_all_reads(sdk):
     metadata = provider.get_repository_metadata()
     integration.get_repo_installation.assert_called_once_with("owner", "repo")
     integration.get_access_token.assert_called_once_with(789)
-    assert constructor.call_args.kwargs["retry"] == 0
-    assert constructor.call_args.kwargs["timeout"] == 20
+    assert "retry" not in constructor.call_args.kwargs
+    assert "timeout" not in constructor.call_args.kwargs
     repo.get_commit.assert_called_once_with("feature")
     assert metadata["commit"] == "a" * 40
     assert provider.tools["read_file"].invoke({"formatted_filepath": "src/main.py"}) == "print(42)\n"
@@ -62,12 +62,12 @@ def test_auth_and_missing_repo_do_not_retry(sdk, status, code):
 
 
 @pytest.mark.parametrize("error", [GithubException(429, {}, {}), GithubException(503, {}, {}), GithubException(403, {}, {"x-ratelimit-remaining": "0"}), Timeout()])
-def test_transient_errors_retry_at_most_three_times(sdk, error):
+def test_transient_errors_are_translated_without_application_retry(sdk, error):
     provider, repo, integration, _ = sdk
     integration.get_repo_installation.side_effect = error
     with pytest.raises(AssessmentError):
         provider.connect()
-    assert integration.get_repo_installation.call_count == 3
+    assert integration.get_repo_installation.call_count == 1
 
 
 def test_missing_file_not_treated_as_content(sdk):
@@ -96,7 +96,7 @@ def test_no_readme_is_valid(sdk):
     assert provider.get_readme() == (None, None)
 
 
-def test_binary_symlink_and_size_rejected(sdk):
+def test_binary_and_symlink_rejected(sdk):
     provider, repo, *_ = sdk
     provider.connect()
     repo.get_contents.return_value = NS(size=4, decoded_content=b"\x00bad")
@@ -107,3 +107,36 @@ def test_binary_symlink_and_size_rejected(sdk):
     with pytest.raises(AssessmentError) as caught:
         provider.read_file("link.py")
     assert caught.value.code == "FILE_EXCLUDED"
+
+
+def test_real_sdk_constructors_use_their_native_defaults(settings, monkeypatch):
+    """Keep SDK constructors real; mock only calls that would reach GitHub."""
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from github import Github, GithubIntegration
+    from pydantic import SecretStr
+
+    key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    settings.GITHUB_APP_ID = "123"
+    settings.GITHUB_APP_PRIVATE_KEY = SecretStr(key.private_bytes(
+        serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption()).decode())
+    repo = NS(default_branch="main", get_commit=lambda ref: NS(
+        sha="a" * 40, commit=NS(tree=NS(sha="tree-sha"))))
+    monkeypatch.setattr(GithubIntegration, "get_repo_installation", lambda self, owner, name: NS(id=789))
+    monkeypatch.setattr(GithubIntegration, "get_access_token", lambda self, installation_id: NS(token="test-token"))
+    monkeypatch.setattr(Github, "get_repo", lambda self, name: repo)
+    provider = RepositoryProvider("https://github.com/owner/repo", None, settings)
+    try:
+        assert provider.get_repository_metadata()["commit"] == "a" * 40
+        assert isinstance(provider._integration, GithubIntegration)
+        assert isinstance(provider._github, Github)
+    finally:
+        provider.close()
+
+def test_sdk_configuration_error_is_not_reported_as_invalid_credentials(sdk, monkeypatch):
+    provider, *_ = sdk
+    monkeypatch.setattr("src.infrastructure.repository.provider.GithubIntegration", MagicMock(side_effect=AssertionError()))
+    with pytest.raises(AssessmentError) as caught:
+        provider.connect()
+    assert caught.value.code == "GITHUB_CLIENT_CONFIGURATION"

@@ -1,0 +1,508 @@
+{
+  "version": "2.0",
+  "criteria": [
+    {
+      "id": "software_architecture",
+      "title": "Arquitetura — Design e separação de responsabilidades",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A solução possui uma separação clara de responsabilidades entre seus componentes?",
+          "anchors": {
+            "2": "existem componentes/módulos distintos para responsabilidades diferentes, como frontend, backend, agentes, serviços, acesso a dados e integrações, sem concentração excessiva de responsabilidades em um único componente.",
+            "1": "existe alguma separação, porém há componentes que concentram responsabilidades distintas ou apresentam fronteiras pouco claras.",
+            "0": "a solução é majoritariamente monolítica ou mistura responsabilidades sem uma organização identificável."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 2,
+          "text": "O código apresenta organização, modularização e legibilidade adequadas?",
+          "anchors": {
+            "2": "o código está organizado em módulos/pacotes coerentes, com nomenclatura clara, responsabilidades identificáveis e estrutura que facilita manutenção e evolução.",
+            "1": "existe organização, mas há inconsistências, duplicações ou módulos excessivamente grandes/difíceis de compreender.",
+            "0": "o código apresenta baixa organização, forte acoplamento ou estrutura que dificulta significativamente sua compreensão e manutenção."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "A solução apresenta baixo acoplamento entre seus principais componentes?",
+          "anchors": {
+            "2": "componentes possuem interfaces/fronteiras bem definidas e podem ser alterados ou substituídos com impacto limitado nos demais.",
+            "1": "existe alguma separação, mas componentes importantes possuem dependências diretas ou conhecimento excessivo uns dos outros.",
+            "0": "os componentes são fortemente acoplados e alterações locais tendem a exigir mudanças em várias partes da solução."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "A arquitetura escolhida é coerente com o problema e com os requisitos da solução?",
+          "anchors": {
+            "2": "as decisões arquiteturais são compatíveis com volume de dados, usuários, integrações e complexidade do problema, sem complexidade desnecessária.",
+            "1": "a arquitetura atende ao problema, mas apresenta decisões pouco justificadas, complexidade excessiva ou limitações relevantes.",
+            "0": "a arquitetura é incompatível com requisitos importantes ou adiciona complexidade significativa sem necessidade."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 5,
+          "text": "A solução utiliza padrões de arquitetura/engenharia de forma consistente?",
+          "anchors": {
+            "2": "existem padrões claros e consistentes para organização, dependências, interfaces e comunicação entre componentes.",
+            "1": "alguns padrões são utilizados, mas de maneira inconsistente ou incompleta.",
+            "0": "não é possível identificar padrões consistentes de organização arquitetural."
+          },
+          "allow_documentation": false
+        }
+      ]
+    },
+    {
+      "id": "scalability",
+      "title": "Escalabilidade",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A solução permite aumento do volume de usuários/requisições sem reconstrução completa da arquitetura?",
+          "anchors": {
+            "2": "a arquitetura permite crescimento por meio de aumento ou replicação de recursos/componentes sem mudanças estruturais relevantes.",
+            "1": "existe possibilidade de crescimento, mas determinados componentes exigiriam alterações significativas.",
+            "0": "o crescimento exigiria reconstrução substancial da solução."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 2,
+          "text": "A solução permite escalar independentemente os componentes que possuem maior demanda?",
+          "anchors": {
+            "2": "componentes críticos podem ser dimensionados separadamente conforme carga ou necessidade.",
+            "1": "alguns componentes podem ser escalados separadamente, mas existem dependências que limitam essa capacidade.",
+            "0": "toda a aplicação precisa ser escalada como uma única unidade."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "A solução considera crescimento do volume de dados?",
+          "anchors": {
+            "2": "existem estratégias identificáveis para lidar com crescimento dos dados, como paginação, processamento em lotes, filas, armazenamento adequado, cache ou mecanismos equivalentes quando aplicáveis.",
+            "1": "existem mecanismos pontuais, mas sem tratamento consistente do crescimento.",
+            "0": "não existe tratamento identificável para aumento significativo do volume de dados."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "A solução evita gargalos evidentes de processamento?",
+          "anchors": {
+            "2": "operações custosas possuem estratégias adequadas, como paralelismo, processamento assíncrono, filas, cache ou controle de concorrência quando aplicáveis.",
+            "1": "existem algumas otimizações, mas permanecem gargalos relevantes.",
+            "0": "existem gargalos claros sem qualquer estratégia de mitigação."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 5,
+          "text": "Integrações e dependências externas são utilizadas de maneira compatível com aumento de escala?",
+          "anchors": {
+            "2": "chamadas externas possuem estratégias para concorrência, limites de requisição, processamento assíncrono ou mecanismos equivalentes quando necessários.",
+            "1": "existe alguma preocupação com escala, porém incompleta.",
+            "0": "dependências externas são utilizadas sem consideração identificável sobre aumento de carga."
+          },
+          "allow_documentation": false
+        }
+      ]
+    },
+    {
+      "id": "resilience_availability",
+      "title": "Resiliência e disponibilidade",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A solução possui tratamento adequado de exceções e falhas?",
+          "anchors": {
+            "2": "falhas são capturadas e tratadas de forma específica, evitando interrupções desnecessárias e fornecendo comportamento controlado.",
+            "1": "existe tratamento de exceções, mas de forma genérica ou incompleta.",
+            "0": "falhas relevantes não possuem tratamento."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 2,
+          "text": "A solução implementa retry para operações sujeitas a falhas transitórias?",
+          "anchors": {
+            "2": "existem retries configurados de maneira controlada, preferencialmente com limite de tentativas e estratégia de espera/backoff.",
+            "1": "existe retry, mas sem controles adequados ou aplicado apenas parcialmente.",
+            "0": "operações sujeitas a falhas transitórias não possuem retry."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "A solução utiliza timeout em chamadas externas ou operações potencialmente bloqueantes?",
+          "anchors": {
+            "2": "chamadas relevantes possuem timeout explicitamente configurado e tratamento para seu encerramento.",
+            "1": "timeout existe apenas em parte das operações relevantes ou sem tratamento adequado.",
+            "0": "chamadas externas relevantes podem aguardar indefinidamente."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "A solução possui fallback ou comportamento degradado quando uma dependência fica indisponível?",
+          "anchors": {
+            "2": "existem estratégias explícitas de fallback, resposta controlada ou degradação funcional para dependências críticas.",
+            "1": "existe tratamento de indisponibilidade, mas sem fallback consistente.",
+            "0": "indisponibilidade de uma dependência crítica provoca falha não controlada da solução."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 5,
+          "text": "A solução considera idempotência ou prevenção de efeitos duplicados quando aplicável?",
+          "anchors": {
+            "2": "operações que podem ser repetidas possuem mecanismos para evitar processamento ou efeitos duplicados.",
+            "1": "existe preocupação com duplicidade, mas sem cobertura consistente.",
+            "0": "operações repetidas podem gerar efeitos duplicados sem qualquer controle."
+          },
+          "allow_documentation": false
+        }
+      ]
+    },
+    {
+      "id": "guardrails_security",
+      "title": "Guardrails e segurança",
+      "questions": [
+        {
+          "id": 1,
+          "text": "O grupo fez um guardrail? Pode ser de bloqueio/liberação, ou pode ser integrado ao prompt do agente principal",
+          "anchors": {
+            "2": "o grupo fez um guardrail em qualquer arquitetura. Ele deve bloquear interações maliciosas OU reescrever possíveis respostas problemáticas, servindo como proteção para o agente final.",
+            "0": "o grupo não fez nenhum guardrail."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 2,
+          "text": "O agente tem alguma proteção contra ataques comuns (prompt injection, jailbreak, coding)?",
+          "anchors": {
+            "2": "o guardrail descreve especificamente tipos de ataques comuns e dá exemplos específicos ao contexto bancário",
+            "1": "o guardrail descreve os ataques comuns de forma genérica e não detalhada ou sem exemplos",
+            "0": "o guardrail não aborda nenhum tipo de ataque comum"
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "O agente tem alguma proteção contra ataques de engenharia social (persona, motivo nobre, apelo emocional)?",
+          "anchors": {
+            "2": "o guardrail descreve especificamente ataques de engenharia social e dá exemplos específicos ao contexto bancário",
+            "1": "o guardrail descreve ataques de engenharia social de forma genérica e não detalhada ou sem exemplos",
+            "0": "o guardrail não aborda nenhum tipo de ataque de engenharia social"
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "O grupo tentou mitigar vieses na resposta do agente? (viés de gênero, racial, etc)",
+          "anchors": {
+            "2": "o guardrail descreve especificamente os tipos de viés e dá exemplos específicos ao contexto bancário",
+            "1": "o guardrail descreve o que é viés de forma genérica ou sem exemplos",
+            "0": "o guardrail não aborda nenhum tipo de viés"
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 5,
+          "text": "O grupo fez algum tratamento da resposta quando a temas sensíveis como saúde, apostas, religião e política?",
+          "anchors": {
+            "2": "o guardrail descreve especificamente os tipos de dados sensíveis e dá exemplos específicos ao contexto bancário",
+            "1": "o guardrail descreve dados sensíveis de forma genérica ou sem exemplos",
+            "0": "o guardrail não aborda nenhum tipo de dado sensível"
+          },
+          "allow_documentation": false
+        }
+      ]
+    },
+    {
+      "id": "genai_design",
+      "title": "Design da solução GenAI",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A abordagem de GenAI escolhida é adequada ao problema?",
+          "anchors": {
+            "2": "existe uma justificativa técnica coerente para uso de prompting, RAG, agentes, tools/function calling, fine-tuning ou outras abordagens utilizadas.",
+            "1": "a abordagem funciona, mas sua escolha não está claramente justificada ou existem componentes GenAI desnecessários.",
+            "0": "a abordagem utilizada é incompatível com o problema ou adiciona complexidade sem benefício identificável."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 2,
+          "text": "O modelo de IA utilizado é adequado à tarefa?",
+          "anchors": {
+            "2": "a escolha do modelo considera requisitos como capacidade, contexto, modalidade, latência e/ou custo.",
+            "1": "o modelo executa a tarefa, mas não existem evidências ou justificativas claras para sua escolha.",
+            "0": "o modelo escolhido apresenta limitações evidentes para a tarefa sem estratégia de compensação."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 3,
+          "text": "Os prompts/instruções dos modelos estão estruturados adequadamente?",
+          "anchors": {
+            "2": "prompts possuem objetivo, contexto, regras e formato de saída claramente definidos quando aplicável.",
+            "1": "existem instruções funcionais, porém genéricas, ambíguas ou pouco estruturadas.",
+            "0": "prompts são insuficientes ou não estabelecem adequadamente o comportamento esperado."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "Quando existem agentes ou ferramentas, suas responsabilidades estão claramente definidas?",
+          "anchors": {
+            "2": "agentes/tools possuem responsabilidades específicas, critérios claros de utilização e fluxo coerente de execução.",
+            "1": "existe divisão de responsabilidades, mas há sobreposição ou decisões pouco claras.",
+            "0": "agentes/tools são utilizados sem responsabilidades ou critérios de execução identificáveis."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 5,
+          "text": "O fluxo GenAI possui mecanismos para controlar e validar suas saídas?",
+          "anchors": {
+            "2": "existem mecanismos como structured output, schemas, validações, parsers ou verificações equivalentes adequadas ao caso.",
+            "1": "existe algum controle de saída, mas incompleto ou aplicado apenas em partes do fluxo.",
+            "0": "a saída do modelo é utilizada diretamente sem validação quando ela seria necessária."
+          },
+          "allow_documentation": false
+        }
+      ]
+    },
+    {
+      "id": "data_quality",
+      "title": "Qualidade e preparação dos dados",
+      "questions": [
+        {
+          "id": 1,
+          "text": "As fontes de dados utilizadas são adequadas ao problema?",
+          "anchors": {
+            "2": "as fontes possuem relação clara com o objetivo da solução e há evidência de critérios para sua seleção.",
+            "1": "os dados são relacionados ao problema, mas sua seleção é pouco justificada ou limitada.",
+            "0": "as fontes não apresentam relação suficiente com o problema ou não podem ser identificadas."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 2,
+          "text": "Existe tratamento de qualidade e limpeza dos dados?",
+          "anchors": {
+            "2": "existem mecanismos para tratar dados inválidos, ausentes, duplicados, inconsistentes ou inadequados conforme o contexto.",
+            "1": "existe limpeza básica, mas problemas relevantes permanecem sem tratamento.",
+            "0": "os dados são utilizados sem tratamento de qualidade identificável."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "A representatividade dos dados foi considerada?",
+          "anchors": {
+            "2": "existem verificações ou justificativas sobre cobertura, distribuição e representatividade dos dados utilizados.",
+            "1": "existe preocupação com representatividade, porém sem análise suficiente.",
+            "0": "não há evidência de análise sobre representatividade."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 4,
+          "text": "A solução considera possíveis vieses presentes nos dados?",
+          "anchors": {
+            "2": "possíveis vieses são identificados e existem estratégias de avaliação ou mitigação quando aplicáveis.",
+            "1": "vieses são reconhecidos, mas não são avaliados ou tratados adequadamente.",
+            "0": "não existe consideração identificável sobre vieses nos dados."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 5,
+          "text": "A solução evita data leakage ou utilização indevida de informações?",
+          "anchors": {
+            "2": "existem mecanismos ou decisões explícitas para impedir vazamento entre conjuntos, etapas ou informações que não deveriam estar disponíveis ao modelo.",
+            "1": "existe preocupação, mas os controles são incompletos.",
+            "0": "há risco evidente de leakage sem tratamento."
+          },
+          "allow_documentation": true
+        }
+      ]
+    },
+    {
+      "id": "metrics_evaluation",
+      "title": "Métricas e avaliação",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A solução possui métricas objetivas para avaliar seu desempenho?",
+          "anchors": {
+            "2": "existem métricas claramente definidas e relacionadas ao objetivo da solução.",
+            "1": "existem métricas, mas cobrem apenas parte do comportamento esperado.",
+            "0": "não existem métricas objetivas de avaliação."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 2,
+          "text": "As métricas escolhidas são coerentes com o problema?",
+          "anchors": {
+            "2": "as métricas medem características relevantes da solução e sua escolha possui justificativa técnica.",
+            "1": "as métricas possuem alguma relação com o problema, mas são insuficientes ou pouco justificadas.",
+            "0": "as métricas utilizadas não representam adequadamente o objetivo da solução."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 3,
+          "text": "Existe um processo reproduzível de avaliação?",
+          "anchors": {
+            "2": "existem dataset/casos de teste, critérios e processo que permitem repetir a avaliação e comparar resultados.",
+            "1": "existe avaliação, mas depende significativamente de análise manual ou não é totalmente reproduzível.",
+            "0": "a avaliação ocorre apenas de maneira informal ou subjetiva."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 4,
+          "text": "Os resultados das métricas são interpretados adequadamente?",
+          "anchors": {
+            "2": "além dos valores, a solução apresenta análise sobre o significado dos resultados, limitações e impactos.",
+            "1": "métricas são apresentadas com interpretação limitada.",
+            "0": "apenas números são apresentados sem interpretação."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 5,
+          "text": "A avaliação considera diferentes cenários relevantes da solução?",
+          "anchors": {
+            "2": "são avaliados cenários normais, casos extremos, falhas ou diferentes tipos de entrada relevantes ao problema.",
+            "1": "existem múltiplos testes, mas a cobertura de cenários é limitada.",
+            "0": "a avaliação utiliza apenas casos básicos ou isolados."
+          },
+          "allow_documentation": true
+        }
+      ]
+    },
+    {
+      "id": "efficiency_cost",
+      "title": "Eficiência e custo",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A escolha dos modelos considera a relação entre capacidade e custo?",
+          "anchors": {
+            "2": "existe uma escolha consciente do modelo considerando necessidade da tarefa, custo e capacidade.",
+            "1": "a escolha funciona, mas não há otimização ou justificativa clara de custo.",
+            "0": "são utilizados modelos evidentemente superdimensionados ou sem qualquer consideração de custo."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 2,
+          "text": "A solução evita chamadas desnecessárias aos modelos ou serviços externos?",
+          "anchors": {
+            "2": "o fluxo minimiza chamadas redundantes e utiliza estratégias como cache, roteamento, batching ou reutilização quando aplicáveis.",
+            "1": "existem algumas otimizações, mas ainda ocorrem chamadas evitáveis.",
+            "0": "existem chamadas redundantes ou desnecessárias sem controle."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "Existe preocupação com consumo de tokens/contexto?",
+          "anchors": {
+            "2": "prompts, histórico, documentos e contexto são selecionados ou reduzidos de maneira consciente.",
+            "1": "existe alguma otimização, mas grandes volumes de contexto ainda são enviados sem necessidade.",
+            "0": "não existe controle identificável sobre consumo de tokens/contexto."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 4,
+          "text": "A solução considera latência no desenho do fluxo?",
+          "anchors": {
+            "2": "existem mecanismos como paralelização, cache, streaming ou redução de etapas quando adequados ao caso.",
+            "1": "existe preocupação com latência, mas com poucas otimizações concretas.",
+            "0": "o fluxo possui etapas custosas ou sequenciais desnecessárias sem consideração de latência."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 5,
+          "text": "Existe uma relação coerente entre custo computacional e benefício entregue?",
+          "anchors": {
+            "2": "componentes e chamadas possuem finalidade clara e o custo adicional está associado a ganho funcional ou de qualidade identificável.",
+            "1": "parte da complexidade/custo possui benefício pouco demonstrado.",
+            "0": "há complexidade ou consumo significativo sem benefício identificável para a solução."
+          },
+          "allow_documentation": true
+        }
+      ]
+    },
+    {
+      "id": "technical_innovation",
+      "title": "Inovação técnica",
+      "questions": [
+        {
+          "id": 1,
+          "text": "A solução apresenta uma abordagem técnica diferenciada para resolver o problema?",
+          "anchors": {
+            "2": "existe uma abordagem não trivial que contribui concretamente para resolver o problema.",
+            "1": "existe alguma diferenciação, mas seu impacto é limitado ou pouco demonstrado.",
+            "0": "a solução utiliza apenas abordagens convencionais sem adaptação relevante ao problema."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 2,
+          "text": "Existe combinação criativa de tecnologias ou técnicas?",
+          "anchors": {
+            "2": "diferentes técnicas são combinadas de maneira coerente e essa combinação gera benefício identificável.",
+            "1": "existe combinação de tecnologias, mas sem benefício claramente demonstrado.",
+            "0": "não existe combinação diferenciada ou ela é puramente incidental."
+          },
+          "allow_documentation": false
+        },
+        {
+          "id": 3,
+          "text": "A inovação apresentada possui justificativa técnica?",
+          "anchors": {
+            "2": "é possível identificar qual problema a abordagem diferenciada resolve e por que ela foi escolhida.",
+            "1": "existe justificativa, porém genérica ou sem evidências.",
+            "0": "tecnologias ou técnicas são utilizadas apenas por novidade, sem justificativa relacionada ao problema."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 4,
+          "text": "A inovação gera benefício mensurável ou demonstrável para a solução?",
+          "anchors": {
+            "2": "existe evidência de melhoria em qualidade, eficiência, experiência, custo, precisão ou outra dimensão relevante.",
+            "1": "o benefício é plausível e demonstrado qualitativamente, mas não possui evidências suficientes.",
+            "0": "não é possível identificar benefício concreto decorrente da inovação."
+          },
+          "allow_documentation": true
+        },
+        {
+          "id": 5,
+          "text": "A solução possui implementação técnica própria relevante além da simples integração de componentes prontos?",
+          "anchors": {
+            "2": "existe desenvolvimento técnico relevante, como lógica própria, orquestração, algoritmos, mecanismos ou adaptações específicas para o problema.",
+            "1": "existe alguma implementação própria, mas a maior parte da solução depende diretamente de componentes prontos.",
+            "0": "a solução consiste essencialmente na conexão/configuração de ferramentas prontas sem implementação técnica relevante."
+          },
+          "allow_documentation": false
+        }
+      ]
+    }
+  ]
+}

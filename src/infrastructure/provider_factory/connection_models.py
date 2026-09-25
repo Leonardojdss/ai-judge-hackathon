@@ -10,4 +10,4 @@ class ConnectionModelNaturalLanguage(ABC):
 
     @abstractmethod
     def connection(self):
-        """Return a LangChain chat model; SDK retries are disabled."""
+        """Return a LangChain chat model using the provider's native defaults."""

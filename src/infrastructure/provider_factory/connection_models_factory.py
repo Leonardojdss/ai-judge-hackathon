@@ -17,4 +17,5 @@ class ConnectionModelFactory:
             raise ValueError("Unsupported model provider")
         if provider != settings.PROVIDER_LLM:
             settings = settings.model_copy(update={"PROVIDER_LLM": provider})
+        settings.validate_llm_configuration()
         return ConnectionModelFactory._registry[provider](settings=settings, **kwargs)

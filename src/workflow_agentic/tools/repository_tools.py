@@ -3,8 +3,8 @@ from pathlib import PurePosixPath
 
 
 EXCLUDED_DIRS = {".git", "node_modules", "vendor", "venv", ".venv", "env", "dist", "build", "__pycache__", ".next", "coverage", ".terraform", ".ssh"}
-TEXT_EXTENSIONS = {".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".toml", ".yaml", ".yml", ".ini", ".cfg", ".xml", ".go", ".rs", ".java", ".kt", ".cs", ".rb", ".php", ".sh", ".sql", ".tf", ".md", ".rst", ".txt", ".properties", ".swift", ".c", ".h", ".cpp", ".vue", ".svelte", ".gradle"}
-TERMS = re.compile(r"retry|timeout|guardrail|moderation|safety|sanitize|exception|middleware|logging|telemetry|trace|circuit.?breaker|fallback|rate.?limit|validate|idempot", re.I)
+TEXT_EXTENSIONS = {".py", ".js", ".jsx", ".ts", ".tsx", ".json", ".toml", ".yaml", ".yml", ".ini", ".cfg", ".xml", ".go", ".rs", ".java", ".kt", ".cs", ".rb", ".php", ".sh", ".sql", ".tf", ".md", ".rst", ".txt", ".properties", ".swift", ".c", ".h", ".cpp", ".vue", ".svelte", ".gradle", ".csv", ".tsv", ".jsonl", ".ndjson", ".ipynb"}
+TERMS = re.compile(r"retry|timeout|guardrail|moderation|safety|sanitize|exception|middleware|logging|telemetry|trace|circuit.?breaker|fallback|rate.?limit|validate|idempot|pagination|batch|cache|queue|dataset|leakage|bias|benchmark|accuracy|precision|recall|evaluation|token|latency|cost|jailbreak", re.I)
 
 
 def exclusion_reason(path: str) -> str | None:

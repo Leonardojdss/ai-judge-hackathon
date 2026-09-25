@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from src.utils.prompts import ENGINEERING_MECHANISMS_PROMPT, RESPONSIBLE_AI_PROMPT, SOFTWARE_ARCHITECTURE_PROMPT
+from src.utils.prompts import PROMPTS
+from src.utils.rubric import CRITERIA_BY_ID, RUBRIC
 
 
 @dataclass(frozen=True)
@@ -8,9 +9,9 @@ class Evaluator:
     criterion: str
     prompt: str
 
+    @property
+    def maximum_score(self) -> int:
+        return CRITERIA_BY_ID[self.criterion].maximum_score
 
-EVALUATORS = (
-    Evaluator("responsible_ai", RESPONSIBLE_AI_PROMPT),
-    Evaluator("software_architecture", SOFTWARE_ARCHITECTURE_PROMPT),
-    Evaluator("engineering_mechanisms", ENGINEERING_MECHANISMS_PROMPT),
-)
+
+EVALUATORS = tuple(Evaluator(criterion.id, PROMPTS[criterion.id]) for criterion in RUBRIC)

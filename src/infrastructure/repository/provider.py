@@ -1,5 +1,4 @@
 import json
-import time
 from pathlib import PurePosixPath
 
 from github import Auth, Github, GithubException, GithubIntegration
@@ -37,22 +36,22 @@ def translate_github_error(exc: Exception) -> AssessmentError:
     if isinstance(exc, AssessmentError):
         return exc
     if isinstance(exc, (Timeout, TimeoutError)):
-        return AssessmentError("REPOSITORY_TIMEOUT", "Tempo limite de acesso ao GitHub.", 504, True)
+        return AssessmentError("REPOSITORY_TIMEOUT", "Tempo limite de acesso ao GitHub.", 504)
     if isinstance(exc, ConnectionError):
-        return AssessmentError("REPOSITORY_UNAVAILABLE", "GitHub temporariamente indisponível.", 502, True)
+        return AssessmentError("REPOSITORY_UNAVAILABLE", "GitHub temporariamente indisponível.", 502)
     if isinstance(exc, GithubException):
         status = exc.status
         headers = exc.headers or {}
         rate_limited = status == 429 or (status == 403 and (
             headers.get("x-ratelimit-remaining") == "0" or "retry-after" in headers))
         if rate_limited:
-            return AssessmentError("RATE_LIMIT", "Limite de requisições do GitHub atingido.", 502, True)
+            return AssessmentError("RATE_LIMIT", "Limite de requisições do GitHub atingido.", 502)
         if status in (401, 403):
             return AssessmentError("REPOSITORY_AUTH", "Acesso ao repositório não autorizado.", 403)
         if status == 404:
             return AssessmentError("NOT_FOUND", "Repositório, referência ou arquivo não encontrado.", 404)
         if status in (500, 502, 503, 504):
-            return AssessmentError("REPOSITORY_UNAVAILABLE", "GitHub temporariamente indisponível.", 502, True)
+            return AssessmentError("REPOSITORY_UNAVAILABLE", "GitHub temporariamente indisponível.", 502)
     return AssessmentError("REPOSITORY_ERROR", "Falha ao consultar o repositório.")
 
 
@@ -67,22 +66,16 @@ class RepositoryProvider:
         self._integration = None
         self._tree = None
         self._cache: dict[str, str] = {}
-        self._bytes = 0
-        self._read_attempts = 0
         self.tree_truncated = False
         self.commit_sha = ""
         self.tree_sha = ""
         self.tools = {}
 
     def _call(self, operation):
-        for attempt in range(self.settings.MAX_ATTEMPTS):
-            try:
-                return operation()
-            except Exception as exc:
-                error = translate_github_error(exc)
-                if not error.transient or attempt + 1 == self.settings.MAX_ATTEMPTS:
-                    raise error from None
-                time.sleep(self.settings.RETRY_DELAY * 2**attempt)
+        try:
+            return operation()
+        except Exception as exc:
+            raise translate_github_error(exc) from None
 
     def connect(self):
         if self._repo is not None:
@@ -94,21 +87,23 @@ class RepositoryProvider:
             key = (s.GITHUB_APP_PRIVATE_KEY.get_secret_value() if s.GITHUB_APP_PRIVATE_KEY
                    else s.GITHUB_APP_PRIVATE_KEY_PATH.read_text())
             auth = Auth.AppAuth(s.GITHUB_APP_ID, key)
-            self._integration = GithubIntegration(auth=auth, timeout=s.GITHUB_TIMEOUT, retry=0)
+            self._integration = GithubIntegration(auth=auth)
             owner, repo_name = self.name.split("/")
             installation = self._call(lambda: self._integration.get_repo_installation(owner, repo_name))
             token = self._call(lambda: self._integration.get_access_token(installation.id))
-            self._github = Github(auth=Auth.Token(token.token), timeout=s.GITHUB_TIMEOUT, retry=0)
+            self._github = Github(auth=Auth.Token(token.token))
             self._repo = self._call(lambda: self._github.get_repo(self.name))
         except AssessmentError:
             raise
+        except (AssertionError, TypeError):
+            raise AssessmentError("GITHUB_CLIENT_CONFIGURATION", "Falha ao configurar o cliente GitHub.", 500) from None
         except Exception:
             raise AssessmentError("CONFIGURATION_ERROR", "Credenciais do GitHub App inválidas.", 500) from None
         commit = self._call(lambda: self._repo.get_commit(self.ref or self._repo.default_branch))
         self.commit_sha = commit.sha
         self.tree_sha = commit.commit.tree.sha
         # model_construct deliberately bypasses upstream authentication: the exact
-        # installation and timeout/retry policy have already been configured above.
+        # installation has already been selected for the requested repository.
         wrapper = ReadOnlyGitHubWrapper.model_construct(
             github=self._github, github_repo_instance=self._repo, github_repository=self.name,
             github_app_id=s.GITHUB_APP_ID, github_app_private_key="",
@@ -134,11 +129,9 @@ class RepositoryProvider:
                        for e in root.tree if e.type == "blob"]
         else:
             queue = [("", self.tree_sha)]
-            requests = 0
-            while queue and requests < self.settings.MAX_TREE_REQUESTS and len(entries) < self.settings.MAX_TREE_ENTRIES:
+            while queue:
                 prefix, sha = queue.pop(0)
                 tree = self._call(lambda: self._repo.get_git_tree(sha))
-                requests += 1
                 self.tree_truncated |= tree.truncated
                 for entry in tree.tree:
                     path = prefix + entry.path
@@ -146,10 +139,7 @@ class RepositoryProvider:
                         queue.append((path + "/", entry.sha))
                     elif entry.type == "blob":
                         entries.append({"path": path, "size": entry.size or 0, "mode": entry.mode})
-            self.tree_truncated |= bool(queue)
-        if len(entries) > self.settings.MAX_TREE_ENTRIES:
-            self.tree_truncated = True
-        self._tree = sorted(entries, key=lambda e: e["path"])[:self.settings.MAX_TREE_ENTRIES]
+        self._tree = sorted(entries, key=lambda e: e["path"])
         return self._tree
 
     def read_file(self, path: str) -> str:
@@ -164,18 +154,10 @@ class RepositoryProvider:
             raise AssessmentError("NOT_FOUND", "Arquivo não encontrado no commit.", 404)
         if entry["mode"] == "120000":
             raise AssessmentError("FILE_EXCLUDED", "Links simbólicos não são analisados.", 422)
-        if entry["size"] > self.settings.MAX_FILE_BYTES:
-            raise AssessmentError("FILE_TOO_LARGE", "Arquivo excede o limite de leitura.", 422)
-        if self._read_attempts >= self.settings.MAX_FILES or self._bytes + entry["size"] > self.settings.MAX_TOTAL_BYTES:
-            raise AssessmentError("READ_BUDGET", "Orçamento de leitura atingido.", 422)
-        self._read_attempts += 1
         content = self._call(lambda: self._repo.get_contents(path, ref=self.commit_sha))
-        if isinstance(content, list) or content.size > self.settings.MAX_FILE_BYTES:
-            raise AssessmentError("FILE_TOO_LARGE", "Arquivo excede o limite de leitura.", 422)
+        if isinstance(content, list):
+            raise AssessmentError("NOT_A_FILE", "O caminho informado não representa um arquivo.", 422)
         raw = content.decoded_content
-        if len(raw) > self.settings.MAX_FILE_BYTES or self._bytes + len(raw) > self.settings.MAX_TOTAL_BYTES:
-            raise AssessmentError("READ_BUDGET", "Orçamento de leitura atingido.", 422)
-        self._bytes += len(raw)
         try:
             text = raw.decode("utf-8")
             if "\0" in text:

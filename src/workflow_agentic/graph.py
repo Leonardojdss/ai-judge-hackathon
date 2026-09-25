@@ -4,16 +4,19 @@ from src.workflow_agentic.nodes.node import (evaluator_node, json_output_node, o
                                              repository_context_builder_node, repository_loader_node,
                                              synthesis_node)
 from src.workflow_agentic.registry import EVALUATORS
+from src.utils.rubric import CRITERIA_BY_ID
 from src.workflow_agentic.state import RepositoryAssessmentState
 
 
 def build_repository_assessment_graph(provider, agents, store, settings, telemetry=None, evaluators=EVALUATORS):
     if not evaluators or any(not e.criterion.strip() for e in evaluators) or len({e.criterion for e in evaluators}) != len(evaluators):
         raise ValueError("Evaluator identifiers must be nonempty and unique")
+    if any(e.criterion not in CRITERIA_BY_ID for e in evaluators):
+        raise ValueError("Every evaluator requires a registered rubric")
     builder = StateGraph(RepositoryAssessmentState)
     nodes = {"repository_loader": repository_loader_node(provider),
-             "context_builder": repository_context_builder_node(provider, settings),
-             "synthesis": synthesis_node(evaluators, settings),
+             "context_builder": repository_context_builder_node(provider),
+             "synthesis": synthesis_node(evaluators),
              "json_output": json_output_node(store)}
     for evaluator in evaluators:
         if evaluator.criterion in nodes:
