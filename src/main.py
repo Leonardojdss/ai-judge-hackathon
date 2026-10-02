@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.adapters.routes.repository_assessment_route import configure_dependencies, router
@@ -28,6 +29,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 logging.getLogger(__name__).warning("Falha ao finalizar telemetria.")
 
     application = FastAPI(title="Repository Assessment API", version="1.0", lifespan=lifespan)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     application.state.settings = configuration
     application.state.telemetry = None
     configure_dependencies(application)

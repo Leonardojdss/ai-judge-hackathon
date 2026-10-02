@@ -7,6 +7,8 @@ from pathlib import Path
 @dataclass(frozen=True)
 class Question:
     id: int
+    name: str
+    title: str
     text: str
     anchors: tuple[tuple[int, str], ...]
     allow_documentation: bool
@@ -14,6 +16,10 @@ class Question:
     @property
     def allowed_scores(self) -> tuple[int, ...]:
         return tuple(score for score, _ in self.anchors)
+
+    @property
+    def maximum_score(self) -> int:
+        return max(self.allowed_scores)
 
 
 @dataclass(frozen=True)
@@ -32,7 +38,8 @@ RUBRIC_VERSION = _data["version"]
 RUBRIC = tuple(Criterion(
     id=criterion["id"], title=criterion["title"],
     questions=tuple(Question(
-        id=question["id"], text=question["text"],
+        id=question["id"], name=question["name"], title=question["title"],
+        text=question["text"],
         anchors=tuple((int(score), text) for score, text in question["anchors"].items()),
         allow_documentation=question["allow_documentation"],
     ) for question in criterion["questions"]),

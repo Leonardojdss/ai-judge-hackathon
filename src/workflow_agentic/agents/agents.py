@@ -15,10 +15,16 @@ from src.workflow_agentic.guardrails.prompt_injection import GUARDRAIL_INSTRUCTI
 logger = logging.getLogger(__name__)
 
 REPAIR_INSTRUCTION = """A resposta anterior foi rejeitada pelo servidor pelo motivo: {reason}.
+Subcritério rejeitado: {question_id}.
 Gere novamente a avaliação completa. Retorne exatamente cinco perguntas, com IDs 1
 a 5 sem repetição. Respeite as notas permitidas. Para nota positiva, copie como
 evidência somente um trecho literal, contíguo e exatamente presente no JSON fornecido,
-com caminho e linha inicial corretos. Retorne apenas questions e summary no schema.
+com caminho e linha inicial corretos. Prefira copiar a linha de origem inteira. Não
+adicione numeração, crases, cercas Markdown, reticências nem reformate o código no
+snippet. Quando a pergunta exigir implementação, README, comentários, docstrings e
+prompts sem carregamento comprovado pelo código não são evidência positiva. Se não
+houver código ou configuração integrada suficiente, atribua 0 e retorne evidence
+vazio para essa pergunta. Retorne apenas questions e summary no schema.
 """
 
 
@@ -107,8 +113,13 @@ class Agents:
                     log_stage(logger, "criterion_retry", "Resposta inválida; nova tentativa agendada.",
                               execution_id=execution_id, node=criterion,
                               retry_kind="validation", error_reason=reason,
+                              question_id=getattr(exc, "question_id", None),
                               next_attempt=attempt + 1, delay_seconds=delay)
-                    messages = base_messages + [("system", REPAIR_INSTRUCTION.format(reason=reason))]
+                    question_id = getattr(exc, "question_id", None)
+                    messages = base_messages + [("system", REPAIR_INSTRUCTION.format(
+                        reason=reason,
+                        question_id=question_id if question_id is not None else "não identificado",
+                    ))]
                     if delay:
                         await asyncio.sleep(delay)
                 except ValueError:
@@ -139,9 +150,10 @@ class Agents:
                         await asyncio.sleep(delay)
         except EvidenceValidationError as exc:
             log_stage(logger, "assessment_rejected", "Avaliação rejeitada após as tentativas.",
-                      execution_id=execution_id, node=criterion, error_reason=exc.reason)
+                      execution_id=execution_id, node=criterion, error_reason=exc.reason,
+                      question_id=exc.question_id)
             error = AssessmentError("INVALID_ASSESSMENT", "Resposta estruturada ou evidência inválida.",
-                                    reason=exc.reason)
+                                    reason=exc.reason, question_id=exc.question_id)
         except ValidationError:
             log_stage(logger, "assessment_rejected", "Avaliação rejeitada após as tentativas.",
                       execution_id=execution_id, node=criterion,

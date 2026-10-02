@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     GITHUB_APP_ID: str = ""
     GITHUB_APP_PRIVATE_KEY: SecretStr | None = None
     GITHUB_APP_PRIVATE_KEY_PATH: Path | None = None
+    GITHUB_PUBLIC_TOKEN: SecretStr | None = None
     ASSESSMENT_OUTPUT_DIR: Path = Path("outputs/assessments")
     CRITERION_MAX_ATTEMPTS: int = Field(default=3, ge=1)
     CRITERION_RETRY_DELAY: float = Field(default=1.0, ge=0)

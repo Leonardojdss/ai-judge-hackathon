@@ -19,9 +19,14 @@ def test_full_rubric_preserves_all_user_questions_and_scoring_anchors():
     for criterion in RUBRIC:
         assert len(criterion.questions) == 5
         assert criterion.maximum_score == 10
+        assert len({question.name for question in criterion.questions}) == 5
         for question in criterion.questions:
+            assert question.name
+            assert question.title
             assert question.text in original
             assert question.text in PROMPTS[criterion.id]
+            assert question.name in PROMPTS[criterion.id]
+            assert question.title in PROMPTS[criterion.id]
             for _, anchor in question.anchors:
                 assert anchor in original
                 assert anchor in PROMPTS[criterion.id]

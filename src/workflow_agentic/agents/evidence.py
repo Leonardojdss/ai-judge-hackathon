@@ -23,9 +23,10 @@ RUNTIME_CONFIGURATION_SUFFIXES = DOCUMENTATION_SUFFIXES
 class EvidenceValidationError(ValueError):
     """Evidence rejection with a safe reason suitable for logs and API metadata."""
 
-    def __init__(self, reason: str):
+    def __init__(self, reason: str, question_id: int | None = None):
         super().__init__(reason)
         self.reason = reason
+        self.question_id = question_id
 
 
 def safe_lines(content: str) -> dict[int, str]:
@@ -137,8 +138,18 @@ def _matching_ranges(evidence, presented: dict[int, str]) -> list[tuple[int, lis
         canonical = [presented.get(start + offset) for offset in range(len(requested))]
         if any(line is None for line in canonical):
             continue
-        if all(_normalized_line(actual) == _normalized_line(expected)
-               for actual, expected in zip(canonical, requested)):
+        exact_lines = all(_normalized_line(actual) == _normalized_line(expected)
+                          for actual, expected in zip(canonical, requested))
+        # Models commonly cite only the relevant expression from a long source
+        # line. It is still verifiable evidence when that text occurs literally
+        # in the presented line. Keep multiline citations strict so omitted or
+        # rearranged lines cannot be accepted as a source excerpt.
+        literal_single_line = (
+            len(requested) == 1
+            and bool(_normalized_line(requested[0]))
+            and _normalized_line(requested[0]) in canonical[0]
+        )
+        if exact_lines or literal_single_line:
             matches.append((start, canonical))
     return matches
 
@@ -206,11 +217,18 @@ def validate_evidence(result: AssessmentResult, criterion: str, presented: dict,
     for answer in result.questions:
         implementation = False
         for evidence in answer.evidence:
-            _canonicalize_evidence(evidence, presented)
+            try:
+                _canonicalize_evidence(evidence, presented)
+            except EvidenceValidationError as exc:
+                exc.question_id = answer.question_id
+                raise
             if not evidence.snippet.strip():
-                raise EvidenceValidationError("evidence_snippet_empty")
+                raise EvidenceValidationError("evidence_snippet_empty", answer.question_id)
             lines = evidence.snippet.splitlines()
             positions = set(range(evidence.line, evidence.line + len(lines)))
             implementation |= bool(positions & code_lines(evidence.file, files[evidence.file])) or _is_runtime_configuration(evidence.file, files, presented)
         if answer.score > 0 and not rubric[answer.question_id].allow_documentation and not implementation:
-            raise EvidenceValidationError("evidence_not_executable_or_integrated_configuration")
+            raise EvidenceValidationError(
+                "evidence_not_executable_or_integrated_configuration",
+                answer.question_id,
+            )
