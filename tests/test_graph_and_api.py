@@ -77,8 +77,12 @@ def test_api_json_matches_atomic_artifact(settings, caplog):
     result = response.json()
     assert set(result) == {"execution_id", "repository", "execution_status", "criteria",
                            "final_synthesis", "errors"}
-    assert all(set(item) == {"criterion", "score", "maximum_score", "reason"}
+    assert all(set(item) == {"criterion", "name", "sub_criteria", "score",
+                             "maximum_score", "reason"}
                for item in result["criteria"])
+    assert all(len(item["sub_criteria"]) == 5 for item in result["criteria"])
+    assert all(set(sub) == {"name", "question", "score", "maximum_score", "reason"}
+               for item in result["criteria"] for sub in item["sub_criteria"].values())
     assert result["execution_id"] == response.headers["X-Execution-ID"]
     assert json.loads(next(settings.ASSESSMENT_OUTPUT_DIR.glob("*.json")).read_text()) == result
     assert not list(settings.ASSESSMENT_OUTPUT_DIR.glob("*.tmp"))
@@ -219,7 +223,9 @@ def test_nine_real_agents_validate_questions_and_persist_compact_response(settin
     assert len(calls) == (11 if invalid_guardrail else 9)
     assert result["criteria"][0]["score"] == 6
     assert all(c["maximum_score"] == 10 for c in result["criteria"])
-    assert all(set(c) == {"criterion", "score", "maximum_score", "reason"} for c in result["criteria"])
+    assert all(set(c) == {"criterion", "name", "sub_criteria", "score",
+                          "maximum_score", "reason"} for c in result["criteria"])
+    assert all(len(c["sub_criteria"]) == 5 for c in result["criteria"])
     assert result["final_synthesis"]["maximum_score"] == 90
     if invalid_guardrail:
         assert result["execution_status"] == "partial"

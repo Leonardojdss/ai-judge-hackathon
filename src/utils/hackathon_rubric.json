@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "2.1",
   "criteria": [
     {
       "id": "software_architecture",
@@ -13,7 +13,9 @@
             "1": "existe alguma separação, porém há componentes que concentram responsabilidades distintas ou apresentam fronteiras pouco claras.",
             "0": "a solução é majoritariamente monolítica ou mistura responsabilidades sem uma organização identificável."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "separation_of_responsibilities",
+          "title": "Separação de responsabilidades"
         },
         {
           "id": 2,
@@ -23,7 +25,9 @@
             "1": "existe organização, mas há inconsistências, duplicações ou módulos excessivamente grandes/difíceis de compreender.",
             "0": "o código apresenta baixa organização, forte acoplamento ou estrutura que dificulta significativamente sua compreensão e manutenção."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "code_organization_modularity",
+          "title": "Organização e modularização do código"
         },
         {
           "id": 3,
@@ -33,7 +37,9 @@
             "1": "existe alguma separação, mas componentes importantes possuem dependências diretas ou conhecimento excessivo uns dos outros.",
             "0": "os componentes são fortemente acoplados e alterações locais tendem a exigir mudanças em várias partes da solução."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "component_coupling",
+          "title": "Acoplamento entre componentes"
         },
         {
           "id": 4,
@@ -43,7 +49,9 @@
             "1": "a arquitetura atende ao problema, mas apresenta decisões pouco justificadas, complexidade excessiva ou limitações relevantes.",
             "0": "a arquitetura é incompatível com requisitos importantes ou adiciona complexidade significativa sem necessidade."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "architectural_fit",
+          "title": "Adequação da arquitetura ao problema"
         },
         {
           "id": 5,
@@ -53,7 +61,9 @@
             "1": "alguns padrões são utilizados, mas de maneira inconsistente ou incompleta.",
             "0": "não é possível identificar padrões consistentes de organização arquitetural."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "architectural_patterns",
+          "title": "Consistência dos padrões arquiteturais"
         }
       ]
     },
@@ -69,7 +79,9 @@
             "1": "existe possibilidade de crescimento, mas determinados componentes exigiriam alterações significativas.",
             "0": "o crescimento exigiria reconstrução substancial da solução."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "request_volume_growth",
+          "title": "Crescimento de usuários e requisições"
         },
         {
           "id": 2,
@@ -79,7 +91,9 @@
             "1": "alguns componentes podem ser escalados separadamente, mas existem dependências que limitam essa capacidade.",
             "0": "toda a aplicação precisa ser escalada como uma única unidade."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "independent_component_scaling",
+          "title": "Escalabilidade independente dos componentes"
         },
         {
           "id": 3,
@@ -89,7 +103,9 @@
             "1": "existem mecanismos pontuais, mas sem tratamento consistente do crescimento.",
             "0": "não existe tratamento identificável para aumento significativo do volume de dados."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "data_volume_growth",
+          "title": "Crescimento do volume de dados"
         },
         {
           "id": 4,
@@ -99,7 +115,9 @@
             "1": "existem algumas otimizações, mas permanecem gargalos relevantes.",
             "0": "existem gargalos claros sem qualquer estratégia de mitigação."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "processing_bottlenecks",
+          "title": "Gargalos de processamento"
         },
         {
           "id": 5,
@@ -109,7 +127,9 @@
             "1": "existe alguma preocupação com escala, porém incompleta.",
             "0": "dependências externas são utilizadas sem consideração identificável sobre aumento de carga."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "external_integration_scalability",
+          "title": "Escalabilidade das integrações externas"
         }
       ]
     },
@@ -125,7 +145,9 @@
             "1": "existe tratamento de exceções, mas de forma genérica ou incompleta.",
             "0": "falhas relevantes não possuem tratamento."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "exception_handling",
+          "title": "Tratamento de exceções e falhas"
         },
         {
           "id": 2,
@@ -135,7 +157,9 @@
             "1": "existe retry, mas sem controles adequados ou aplicado apenas parcialmente.",
             "0": "operações sujeitas a falhas transitórias não possuem retry."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "transient_failure_retries",
+          "title": "Retry para falhas transitórias"
         },
         {
           "id": 3,
@@ -145,7 +169,9 @@
             "1": "timeout existe apenas em parte das operações relevantes ou sem tratamento adequado.",
             "0": "chamadas externas relevantes podem aguardar indefinidamente."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "external_operation_timeouts",
+          "title": "Timeout em operações externas"
         },
         {
           "id": 4,
@@ -155,7 +181,9 @@
             "1": "existe tratamento de indisponibilidade, mas sem fallback consistente.",
             "0": "indisponibilidade de uma dependência crítica provoca falha não controlada da solução."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "fallback_degraded_behavior",
+          "title": "Fallback e comportamento degradado"
         },
         {
           "id": 5,
@@ -165,7 +193,9 @@
             "1": "existe preocupação com duplicidade, mas sem cobertura consistente.",
             "0": "operações repetidas podem gerar efeitos duplicados sem qualquer controle."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "idempotency_duplicate_prevention",
+          "title": "Idempotência e prevenção de duplicidade"
         }
       ]
     },
@@ -180,7 +210,9 @@
             "2": "o grupo fez um guardrail em qualquer arquitetura. Ele deve bloquear interações maliciosas OU reescrever possíveis respostas problemáticas, servindo como proteção para o agente final.",
             "0": "o grupo não fez nenhum guardrail."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "guardrail_implementation",
+          "title": "Implementação de guardrail"
         },
         {
           "id": 2,
@@ -190,7 +222,9 @@
             "1": "o guardrail descreve os ataques comuns de forma genérica e não detalhada ou sem exemplos",
             "0": "o guardrail não aborda nenhum tipo de ataque comum"
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "common_attack_protection",
+          "title": "Proteção contra ataques comuns"
         },
         {
           "id": 3,
@@ -200,7 +234,9 @@
             "1": "o guardrail descreve ataques de engenharia social de forma genérica e não detalhada ou sem exemplos",
             "0": "o guardrail não aborda nenhum tipo de ataque de engenharia social"
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "social_engineering_protection",
+          "title": "Proteção contra engenharia social"
         },
         {
           "id": 4,
@@ -210,7 +246,9 @@
             "1": "o guardrail descreve o que é viés de forma genérica ou sem exemplos",
             "0": "o guardrail não aborda nenhum tipo de viés"
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "bias_mitigation",
+          "title": "Mitigação de vieses"
         },
         {
           "id": 5,
@@ -220,7 +258,9 @@
             "1": "o guardrail descreve dados sensíveis de forma genérica ou sem exemplos",
             "0": "o guardrail não aborda nenhum tipo de dado sensível"
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "sensitive_topic_handling",
+          "title": "Tratamento de temas sensíveis"
         }
       ]
     },
@@ -236,7 +276,9 @@
             "1": "a abordagem funciona, mas sua escolha não está claramente justificada ou existem componentes GenAI desnecessários.",
             "0": "a abordagem utilizada é incompatível com o problema ou adiciona complexidade sem benefício identificável."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "genai_approach_fit",
+          "title": "Adequação da abordagem GenAI"
         },
         {
           "id": 2,
@@ -246,7 +288,9 @@
             "1": "o modelo executa a tarefa, mas não existem evidências ou justificativas claras para sua escolha.",
             "0": "o modelo escolhido apresenta limitações evidentes para a tarefa sem estratégia de compensação."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "model_suitability",
+          "title": "Adequação do modelo de IA"
         },
         {
           "id": 3,
@@ -256,7 +300,9 @@
             "1": "existem instruções funcionais, porém genéricas, ambíguas ou pouco estruturadas.",
             "0": "prompts são insuficientes ou não estabelecem adequadamente o comportamento esperado."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "prompt_structure",
+          "title": "Estrutura dos prompts"
         },
         {
           "id": 4,
@@ -266,7 +312,9 @@
             "1": "existe divisão de responsabilidades, mas há sobreposição ou decisões pouco claras.",
             "0": "agentes/tools são utilizados sem responsabilidades ou critérios de execução identificáveis."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "agent_tool_responsibilities",
+          "title": "Responsabilidades de agentes e ferramentas"
         },
         {
           "id": 5,
@@ -276,7 +324,9 @@
             "1": "existe algum controle de saída, mas incompleto ou aplicado apenas em partes do fluxo.",
             "0": "a saída do modelo é utilizada diretamente sem validação quando ela seria necessária."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "output_control_validation",
+          "title": "Controle e validação das saídas"
         }
       ]
     },
@@ -292,7 +342,9 @@
             "1": "os dados são relacionados ao problema, mas sua seleção é pouco justificada ou limitada.",
             "0": "as fontes não apresentam relação suficiente com o problema ou não podem ser identificadas."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "data_source_suitability",
+          "title": "Adequação das fontes de dados"
         },
         {
           "id": 2,
@@ -302,7 +354,9 @@
             "1": "existe limpeza básica, mas problemas relevantes permanecem sem tratamento.",
             "0": "os dados são utilizados sem tratamento de qualidade identificável."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "data_quality_cleaning",
+          "title": "Qualidade e limpeza dos dados"
         },
         {
           "id": 3,
@@ -312,7 +366,9 @@
             "1": "existe preocupação com representatividade, porém sem análise suficiente.",
             "0": "não há evidência de análise sobre representatividade."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "data_representativeness",
+          "title": "Representatividade dos dados"
         },
         {
           "id": 4,
@@ -322,7 +378,9 @@
             "1": "vieses são reconhecidos, mas não são avaliados ou tratados adequadamente.",
             "0": "não existe consideração identificável sobre vieses nos dados."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "data_bias",
+          "title": "Vieses nos dados"
         },
         {
           "id": 5,
@@ -332,7 +390,9 @@
             "1": "existe preocupação, mas os controles são incompletos.",
             "0": "há risco evidente de leakage sem tratamento."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "data_leakage_prevention",
+          "title": "Prevenção de data leakage"
         }
       ]
     },
@@ -348,7 +408,9 @@
             "1": "existem métricas, mas cobrem apenas parte do comportamento esperado.",
             "0": "não existem métricas objetivas de avaliação."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "objective_metrics",
+          "title": "Métricas objetivas"
         },
         {
           "id": 2,
@@ -358,7 +420,9 @@
             "1": "as métricas possuem alguma relação com o problema, mas são insuficientes ou pouco justificadas.",
             "0": "as métricas utilizadas não representam adequadamente o objetivo da solução."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "metric_relevance",
+          "title": "Coerência das métricas"
         },
         {
           "id": 3,
@@ -368,7 +432,9 @@
             "1": "existe avaliação, mas depende significativamente de análise manual ou não é totalmente reproduzível.",
             "0": "a avaliação ocorre apenas de maneira informal ou subjetiva."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "reproducible_evaluation",
+          "title": "Processo reproduzível de avaliação"
         },
         {
           "id": 4,
@@ -378,7 +444,9 @@
             "1": "métricas são apresentadas com interpretação limitada.",
             "0": "apenas números são apresentados sem interpretação."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "result_interpretation",
+          "title": "Interpretação dos resultados"
         },
         {
           "id": 5,
@@ -388,7 +456,9 @@
             "1": "existem múltiplos testes, mas a cobertura de cenários é limitada.",
             "0": "a avaliação utiliza apenas casos básicos ou isolados."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "scenario_coverage",
+          "title": "Cobertura de cenários"
         }
       ]
     },
@@ -404,7 +474,9 @@
             "1": "a escolha funciona, mas não há otimização ou justificativa clara de custo.",
             "0": "são utilizados modelos evidentemente superdimensionados ou sem qualquer consideração de custo."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "model_cost_capacity",
+          "title": "Relação entre capacidade e custo do modelo"
         },
         {
           "id": 2,
@@ -414,7 +486,9 @@
             "1": "existem algumas otimizações, mas ainda ocorrem chamadas evitáveis.",
             "0": "existem chamadas redundantes ou desnecessárias sem controle."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "unnecessary_external_calls",
+          "title": "Chamadas desnecessárias a modelos e serviços"
         },
         {
           "id": 3,
@@ -424,7 +498,9 @@
             "1": "existe alguma otimização, mas grandes volumes de contexto ainda são enviados sem necessidade.",
             "0": "não existe controle identificável sobre consumo de tokens/contexto."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "token_context_consumption",
+          "title": "Consumo de tokens e contexto"
         },
         {
           "id": 4,
@@ -434,7 +510,9 @@
             "1": "existe preocupação com latência, mas com poucas otimizações concretas.",
             "0": "o fluxo possui etapas custosas ou sequenciais desnecessárias sem consideração de latência."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "flow_latency",
+          "title": "Latência do fluxo"
         },
         {
           "id": 5,
@@ -444,7 +522,9 @@
             "1": "parte da complexidade/custo possui benefício pouco demonstrado.",
             "0": "há complexidade ou consumo significativo sem benefício identificável para a solução."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "cost_benefit",
+          "title": "Relação entre custo e benefício"
         }
       ]
     },
@@ -460,7 +540,9 @@
             "1": "existe alguma diferenciação, mas seu impacto é limitado ou pouco demonstrado.",
             "0": "a solução utiliza apenas abordagens convencionais sem adaptação relevante ao problema."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "differentiated_approach",
+          "title": "Abordagem técnica diferenciada"
         },
         {
           "id": 2,
@@ -470,7 +552,9 @@
             "1": "existe combinação de tecnologias, mas sem benefício claramente demonstrado.",
             "0": "não existe combinação diferenciada ou ela é puramente incidental."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "creative_technology_combination",
+          "title": "Combinação criativa de tecnologias"
         },
         {
           "id": 3,
@@ -480,7 +564,9 @@
             "1": "existe justificativa, porém genérica ou sem evidências.",
             "0": "tecnologias ou técnicas são utilizadas apenas por novidade, sem justificativa relacionada ao problema."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "technical_justification",
+          "title": "Justificativa técnica da inovação"
         },
         {
           "id": 4,
@@ -490,7 +576,9 @@
             "1": "o benefício é plausível e demonstrado qualitativamente, mas não possui evidências suficientes.",
             "0": "não é possível identificar benefício concreto decorrente da inovação."
           },
-          "allow_documentation": true
+          "allow_documentation": true,
+          "name": "measurable_benefit",
+          "title": "Benefício mensurável ou demonstrável"
         },
         {
           "id": 5,
@@ -500,7 +588,9 @@
             "1": "existe alguma implementação própria, mas a maior parte da solução depende diretamente de componentes prontos.",
             "0": "a solução consiste essencialmente na conexão/configuração de ferramentas prontas sem implementação técnica relevante."
           },
-          "allow_documentation": false
+          "allow_documentation": false,
+          "name": "proprietary_implementation",
+          "title": "Implementação técnica própria"
         }
       ]
     }

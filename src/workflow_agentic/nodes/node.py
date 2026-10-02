@@ -5,7 +5,9 @@ from datetime import datetime, timezone
 
 from pydantic import ValidationError
 
-from src.adapters.schemas.repository_assessment import AssessmentResult, CriterionScore, FinalSynthesis, RepositoryAssessmentResponse
+from src.adapters.schemas.repository_assessment import (AssessmentResult, CriterionScore,
+                                                        FinalSynthesis, RepositoryAssessmentResponse,
+                                                        SubCriterionScore)
 from src.infrastructure.langfuse.callback import trace_node
 from src.utils.errors import AssessmentError
 from src.utils.logging import log_info, log_stage
@@ -197,9 +199,23 @@ def synthesis_node(evaluators):
         errors = []
         for evaluator in evaluators:
             outcome = outcomes.get(evaluator.criterion)
+            rubric = CRITERIA_BY_ID[evaluator.criterion]
             if outcome and outcome["execution_status"] == "completed":
                 result = AssessmentResult.model_validate(outcome["result"])
+                answers = {answer.question_id: answer for answer in result.questions}
+                sub_criteria = {
+                    question.name: SubCriterionScore(
+                        name=question.title,
+                        question=question.text,
+                        score=answers[question.id].score,
+                        maximum_score=question.maximum_score,
+                        reason=answers[question.id].reason,
+                    )
+                    for question in rubric.questions
+                }
                 criteria.append(CriterionScore(criterion=evaluator.criterion,
+                                               name=rubric.title,
+                                               sub_criteria=sub_criteria,
                                                score=result.score, maximum_score=evaluator.maximum_score,
                                                reason=result.summary))
             else:
@@ -210,7 +226,20 @@ def synthesis_node(evaluators):
                           if missing and state.get("fatal_error") else
                           "Avaliação não executada." if missing else
                           "Avaliação indisponível por falha; nenhuma nota foi atribuída.")
-                criteria.append(CriterionScore(criterion=evaluator.criterion, score=None, reason=reason))
+                sub_criteria = {
+                    question.name: SubCriterionScore(
+                        name=question.title,
+                        question=question.text,
+                        score=None,
+                        maximum_score=question.maximum_score,
+                        reason=reason,
+                    )
+                    for question in rubric.questions
+                }
+                criteria.append(CriterionScore(criterion=evaluator.criterion,
+                                               name=rubric.title,
+                                               sub_criteria=sub_criteria,
+                                               score=None, reason=reason))
         complete = all(c.score is not None for c in criteria)
         total = sum(c.score for c in criteria) if complete else None
         maximum = sum(evaluator.maximum_score for evaluator in evaluators)

@@ -12,8 +12,9 @@ O notebook original não é necessário para iniciar a API.
 
 ## Executar localmente
 
-Requer Python 3.12+, acesso ao GitHub App instalado no repositório e um dos
-providers de modelo configurados.
+Requer Python 3.12+ e um provider de modelo configurado. Repositórios públicos
+podem ser lidos sem instalação do GitHub App; repositórios privados exigem que o
+App esteja instalado e autorizado.
 
 ```bash
 python3 -m venv env
@@ -21,19 +22,25 @@ env/bin/python -m pip install -r requirements-test.txt
 ```
 
 Crie ou complete seu `.env` usando `.env.example` como referência. Preserve as
-credenciais que já existirem. Configure pelo menos:
+credenciais que já existirem. Para repositórios públicos, configure pelo menos o
+provider e o modelo:
 
 ```dotenv
-GITHUB_APP_ID=seu-app-id
-GITHUB_APP_PRIVATE_KEY_PATH=/caminho/para/chave.pem
 PROVIDER_LLM=openai
 LLM_MODEL=gpt-5.4-mini
 OPENAI_API_KEY=sua-chave
+# Opcional para aumentar o rate limit do acesso público:
+GITHUB_PUBLIC_TOKEN=seu-token
 ```
 
-A alternativa `GITHUB_APP_PRIVATE_KEY` recebe o conteúdo PEM. O App deve ter acesso
-ao repositório solicitado, com **Contents: Read-only** e Metadata. A instalação é
-selecionada por `owner/repo`; nunca se presume que a primeira instalação é correta.
+Para repositórios privados, adicione `GITHUB_APP_ID` e
+`GITHUB_APP_PRIVATE_KEY_PATH`; a alternativa `GITHUB_APP_PRIVATE_KEY` recebe o
+conteúdo PEM. Quando o App está
+instalado, ele deve ter **Contents: Read-only** e Metadata. A instalação é selecionada
+por `owner/repo`; nunca se presume que a primeira instalação é correta. Quando não
+há instalação, o provider tenta acesso público somente leitura. Sem
+`GITHUB_PUBLIC_TOKEN`, esse fallback usa o limite não autenticado do GitHub, de 60
+requisições por hora por IP. O token é recomendado para avaliar vários repositórios.
 As permissões de escrita do toolkit não são expostas.
 
 Na raiz do projeto, inicie o Uvicorn com recarga automática para desenvolvimento:
@@ -102,18 +109,39 @@ Erros `INVALID_ASSESSMENT` incluem um campo `reason` sanitizado, como
 `evidence_snippet_not_found`, `evidence_snippet_ambiguous` ou
 `structured_output_schema`, sem expor respostas brutas do provider.
 
-A resposta expõe somente o resultado necessário para consumo: `execution_id`,
-repositório e status; em `criteria`, o identificador, `score`, `maximum_score` e o
-`reason` da nota; em `final_synthesis`, pontuação total, percentual e síntese final.
-Falhas sanitizadas permanecem em `errors`. Perguntas, evidências, cobertura e dados
-operacionais continuam sendo usados internamente para validar a avaliação, mas não
-são incluídos no JSON final.
+A resposta expõe `execution_id`, repositório e status. Cada item de `criteria` contém
+o identificador técnico, nome legível, nota, máximo, justificativa e um mapa
+`sub_criteria`. Cada subcritério possui identificador estável, nome, pergunta original,
+nota de 0 a 2, máximo e justificativa. Evidências e dados de cobertura continuam
+internos; falhas sanitizadas permanecem em `errors`.
+
+```json
+{
+  "criterion": "guardrails_security",
+  "name": "Guardrails e segurança",
+  "sub_criteria": {
+    "guardrail_implementation": {
+      "name": "Implementação de guardrail",
+      "question": "O grupo fez um guardrail? Pode ser de bloqueio/liberação, ou pode ser integrado ao prompt do agente principal",
+      "score": 0,
+      "maximum_score": 2,
+      "reason": "Não há evidência suficiente de um guardrail implementado."
+    }
+  },
+  "score": 0,
+  "maximum_score": 10,
+  "reason": "Não foram encontradas evidências suficientes para os cinco subcritérios."
+}
+```
+
+O exemplo acima abrevia `sub_criteria`; a resposta real sempre contém os cinco. O
+servidor valida que a soma das cinco notas seja igual ao `score` do critério.
 
 ## Rubrica do hackathon
 
 O [texto completo recebido](docs/hackathon-criteria.md) foi preservado. Os prompts
 usam todas as perguntas e descrições de pontuação, sem substituir a rubrica por
-uma nota geral. Versão da rubrica: `2.0`; prompts: `2.0.2`; guardrail: `1.0`.
+uma nota geral. Versão da rubrica: `2.1`; prompts: `2.1.4`; guardrail: `1.0`.
 
 | Critério | Identificador na resposta | Máximo |
 | --- | --- | --- |
@@ -143,13 +171,21 @@ aplicabilidade não demonstrada recebe 0, com a limitação explicada.
 Justificativas de arquitetura/GenAI, seleção e análise dos dados, relatórios de
 métricas, decisões de custo e demonstrações de inovação podem usar documentação
 quando a pergunta permitir. Uma promessa no README não prova implementação.
-Arquivos textuais de dados (`.csv`, `.tsv`, `.jsonl`, `.ndjson`) e notebooks
-(`.ipynb`, lidos como JSON, sem execução) também são elegíveis para análise.
+Dados brutos e artefatos de banco não entram no contexto dos avaliadores. Isso
+inclui CSV/TSV, Excel, SQL, bancos locais, JSON Lines e formatos colunares como
+Parquet, Arrow e ORC. O juiz avalia o código que coleta, prepara e valida os dados,
+além de configurações e documentação pertinente. Notebooks (`.ipynb`) permanecem
+elegíveis e são lidos como JSON, sem execução.
 
-A saída permanece compacta: nota e motivo por critério e síntese final. Os cinco
-resultados individuais e suas evidências ficam no State durante a execução. A
-versão da rubrica aparece nos logs. Avaliações já salvas não são reescritas;
-consumidores devem usar os novos identificadores e a escala 0–10/0–90.
+Arquivos de teste também são excluídos antes da leitura. A detecção cobre diretórios
+como `test`, `tests`, `__tests__` e `e2e`, convenções de nomes como `test_*.py`,
+`*_test.go`, `*.test.ts` e `*.spec.js`, além das configurações usuais de ferramentas
+de teste.
+
+A saída apresenta a nota e o motivo de cada subcritério, o consolidado por critério e
+a síntese final. As evidências ficam no State durante a execução e não são expostas.
+Avaliações já salvas não são reescritas; consumidores devem usar a versão atual do
+contrato e a escala 0–2 por subcritério, 0–10 por critério e 0–90 no total.
 
 ## Providers e limites
 
@@ -275,7 +311,9 @@ são enviados.
    extras, referências vazias, outros hosts e formatos inválidos.
 3. A rota cria `RepositoryProvider`, `Agents` e `JsonResultStore`, compila o graph e
    chama `ainvoke`. A conexão com o GitHub é fechada no bloco `finally`.
-4. `repository_loader` autentica o GitHub App na instalação do repositório pedido,
+4. `repository_loader` usa a instalação do GitHub App quando disponível. Sem uma
+   instalação, tenta acesso público, opcionalmente autenticado por
+   `GITHUB_PUBLIC_TOKEN`; repositórios privados continuam exigindo o App. Depois,
    resolve `ref` ou a branch padrão para um SHA e carrega metadados, árvore e README.
    Todas as leituras seguintes usam esse mesmo SHA, evitando misturar commits.
 5. `context_builder` percorre a árvore em ordem determinística, exclui arquivos
@@ -320,8 +358,8 @@ propagado para prompt, registro e orquestração, sujeito às validações de un
 consistência existentes.
 
 O graph é compilado sem checkpointer por padrão. O State com código bruto existe
-somente em memória durante a requisição; o artefato persistido contém a resposta
-compacta definida pelo schema público.
+somente em memória durante a requisição; o artefato persistido contém apenas a
+resposta definida pelo schema público.
 
 ## Mapa dos arquivos
 
@@ -344,7 +382,7 @@ compacta definida pelo schema público.
 | `src/infrastructure/provider_factory/ollama.py` | Cria `ChatOllama` com modelo e URL do servidor local. |
 | `src/infrastructure/provider_factory/aws_bedrock.py` | Cria `ChatBedrockConverse` com model ID e região AWS. |
 | `src/infrastructure/provider_factory/google.py` | Cria `ChatGoogleGenerativeAI` com modelo e chave Gemini. |
-| `src/infrastructure/repository/provider.py` | Seleciona a instalação correta do GitHub App, fixa o commit, lista a árvore, lê e armazena arquivos em cache e traduz falhas do SDK em erros tipados. O wrapper expõe somente ferramentas de leitura. |
+| `src/infrastructure/repository/provider.py` | Seleciona a instalação correta do GitHub App ou usa fallback público somente leitura, fixa o commit, lista a árvore, lê e armazena arquivos em cache e traduz falhas do SDK em erros tipados. |
 | `src/infrastructure/storage/json_store.py` | Persiste o resultado por arquivo temporário, `fsync` e `os.replace`; valida o UUID para impedir nomes de arquivo escolhidos pelo cliente. |
 | `src/infrastructure/langfuse/callback.py` | Cria o cliente opcional do Langfuse com máscara e registra spans contendo apenas metadados operacionais. |
 
@@ -472,7 +510,7 @@ sobrar conteúdo utilizável, nenhum modelo é chamado: os critérios retornam
 fluxo normal (HTTP 200 para falhas dos avaliadores). Os logs `guardrail_filtered`
 registram ID da execução, avaliador, versão, contagens e códigos de motivo, sem
 texto do ataque nem caminhos de arquivo. Linhas removidas ficam identificadas na
-cobertura interna do State; o formato compacto da resposta continua igual.
+cobertura interna do State; a resposta pública continua sem expor código bruto.
 
 Regras defensivas e descrições comuns de segurança são preservadas. Exemplos que
 contêm ataques literais podem ser removidos junto com seu parágrafo; isso é uma

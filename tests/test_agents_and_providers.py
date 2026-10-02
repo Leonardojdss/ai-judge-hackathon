@@ -79,6 +79,57 @@ async def test_invalid_evidence_can_be_corrected_once(settings, caplog):
     assert "criterion_retry" in stages
 
 
+async def test_non_executable_evidence_retry_identifies_subcriterion(settings):
+    invalid = model_assessment_output(
+        "genai_design",
+        2,
+        file="README.md",
+        snippet="Design documentado.",
+    )
+    corrected = model_assessment_output("genai_design", 0)
+    factory, structured, _ = model_factory([invalid, corrected])
+    repository_state = {
+        "repository_metadata": {},
+        "repository_tree": [{"path": "README.md"}, {"path": "src/main.py"}],
+        "repository_files": {
+            "README.md": "Design documentado.\n",
+            "src/main.py": "def main():\n    return 42\n",
+        },
+    }
+
+    result = await Agents(settings, factory).evaluate(
+        "genai_design", PROMPTS["genai_design"], repository_state,
+    )
+
+    assert result["result"]["criterion"] == "genai_design"
+    repair_messages = structured.ainvoke.await_args_list[1].args[0]
+    assert "Subcritério rejeitado: 3" in repair_messages[-1][1]
+    assert "README, comentários, docstrings" in repair_messages[-1][1]
+
+
+async def test_non_executable_evidence_failure_exposes_subcriterion(settings):
+    invalid = model_assessment_output(
+        "genai_design",
+        2,
+        file="README.md",
+        snippet="Design documentado.",
+    )
+    factory, _, _ = model_factory([invalid] * 3)
+    repository_state = {
+        "repository_metadata": {},
+        "repository_tree": [{"path": "README.md"}],
+        "repository_files": {"README.md": "Design documentado.\n"},
+    }
+
+    with pytest.raises(AssessmentError) as caught:
+        await Agents(settings, factory).evaluate(
+            "genai_design", PROMPTS["genai_design"], repository_state,
+        )
+
+    assert caught.value.question_id == 3
+    assert caught.value.record("genai_design")["question_id"] == 3
+
+
 async def test_transient_model_failure_is_retried(settings, caplog):
     factory, structured, _ = model_factory([
         TimeoutError("temporary"),

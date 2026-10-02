@@ -1,3 +1,5 @@
+import base64
+import binascii
 import json
 from pathlib import PurePosixPath
 
@@ -69,6 +71,7 @@ class RepositoryProvider:
         self.tree_truncated = False
         self.commit_sha = ""
         self.tree_sha = ""
+        self.access_mode = ""
         self.tools = {}
 
     def _call(self, operation):
@@ -81,24 +84,56 @@ class RepositoryProvider:
         if self._repo is not None:
             return
         s = self.settings
-        if not s.GITHUB_APP_ID or not (s.GITHUB_APP_PRIVATE_KEY or s.GITHUB_APP_PRIVATE_KEY_PATH):
-            raise AssessmentError("CONFIGURATION_ERROR", "Configure as credenciais do GitHub App.", 500)
-        try:
-            key = (s.GITHUB_APP_PRIVATE_KEY.get_secret_value() if s.GITHUB_APP_PRIVATE_KEY
-                   else s.GITHUB_APP_PRIVATE_KEY_PATH.read_text())
-            auth = Auth.AppAuth(s.GITHUB_APP_ID, key)
-            self._integration = GithubIntegration(auth=auth)
-            owner, repo_name = self.name.split("/")
-            installation = self._call(lambda: self._integration.get_repo_installation(owner, repo_name))
-            token = self._call(lambda: self._integration.get_access_token(installation.id))
-            self._github = Github(auth=Auth.Token(token.token))
+        app_id_configured = bool(s.GITHUB_APP_ID)
+        app_key_configured = bool(s.GITHUB_APP_PRIVATE_KEY or s.GITHUB_APP_PRIVATE_KEY_PATH)
+        if app_id_configured != app_key_configured:
+            raise AssessmentError(
+                "CONFIGURATION_ERROR",
+                "Configure GITHUB_APP_ID e a chave privada do GitHub App em conjunto.",
+                500,
+            )
+
+        if app_id_configured:
+            try:
+                key = (s.GITHUB_APP_PRIVATE_KEY.get_secret_value() if s.GITHUB_APP_PRIVATE_KEY
+                       else s.GITHUB_APP_PRIVATE_KEY_PATH.read_text())
+                auth = Auth.AppAuth(s.GITHUB_APP_ID, key)
+                self._integration = GithubIntegration(auth=auth)
+                owner, repo_name = self.name.split("/")
+                try:
+                    installation = self._integration.get_repo_installation(owner, repo_name)
+                except GithubException as exc:
+                    if exc.status != 404:
+                        raise translate_github_error(exc) from None
+                    installation = None
+                except Exception as exc:
+                    raise translate_github_error(exc) from None
+                if installation is not None:
+                    token = self._call(lambda: self._integration.get_access_token(installation.id))
+                    self._github = Github(auth=Auth.Token(token.token))
+                    self._repo = self._call(lambda: self._github.get_repo(self.name))
+                    self.access_mode = "github_app_installation"
+            except AssessmentError:
+                raise
+            except (AssertionError, TypeError):
+                raise AssessmentError("GITHUB_CLIENT_CONFIGURATION", "Falha ao configurar o cliente GitHub.", 500) from None
+            except Exception:
+                raise AssessmentError("CONFIGURATION_ERROR", "Credenciais do GitHub App inválidas.", 500) from None
+
+        if self._repo is None:
+            public_token = (s.GITHUB_PUBLIC_TOKEN.get_secret_value().strip()
+                            if s.GITHUB_PUBLIC_TOKEN else "")
+            self._github = (Github(auth=Auth.Token(public_token))
+                            if public_token else Github())
             self._repo = self._call(lambda: self._github.get_repo(self.name))
-        except AssessmentError:
-            raise
-        except (AssertionError, TypeError):
-            raise AssessmentError("GITHUB_CLIENT_CONFIGURATION", "Falha ao configurar o cliente GitHub.", 500) from None
-        except Exception:
-            raise AssessmentError("CONFIGURATION_ERROR", "Credenciais do GitHub App inválidas.", 500) from None
+            if self._repo.private:
+                raise AssessmentError(
+                    "REPOSITORY_AUTH",
+                    "A GitHub App não está instalada neste repositório privado.",
+                    403,
+                )
+            self.access_mode = "public_token" if public_token else "public_unauthenticated"
+
         commit = self._call(lambda: self._repo.get_commit(self.ref or self._repo.default_branch))
         self.commit_sha = commit.sha
         self.tree_sha = commit.commit.tree.sha
@@ -157,7 +192,22 @@ class RepositoryProvider:
         content = self._call(lambda: self._repo.get_contents(path, ref=self.commit_sha))
         if isinstance(content, list):
             raise AssessmentError("NOT_A_FILE", "O caminho informado não representa um arquivo.", 422)
-        raw = content.decoded_content
+        # The Contents API omits the payload (`encoding: none`) for files above
+        # its inline-content threshold. Fetch the same immutable object through
+        # the Git Blob API instead of relying on an unpinned download URL.
+        if getattr(content, "encoding", None) == "none":
+            sha = getattr(content, "sha", None)
+            if not sha:
+                raise AssessmentError("REPOSITORY_ERROR", "Arquivo retornado sem conteúdo ou identificador.")
+            blob = self._call(lambda: self._repo.get_git_blob(sha))
+            if getattr(blob, "encoding", None) != "base64":
+                raise AssessmentError("REPOSITORY_ERROR", "Formato de conteúdo não suportado pelo GitHub.")
+            try:
+                raw = base64.b64decode(blob.content)
+            except (TypeError, ValueError, binascii.Error):
+                raise AssessmentError("REPOSITORY_ERROR", "Conteúdo inválido retornado pelo GitHub.") from None
+        else:
+            raw = content.decoded_content
         try:
             text = raw.decode("utf-8")
             if "\0" in text:

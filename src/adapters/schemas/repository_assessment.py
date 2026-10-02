@@ -121,11 +121,42 @@ class AssessmentResult(Contract):
         return sum(question.score for question in self.questions)
 
 
+class SubCriterionScore(Contract):
+    name: str = Field(min_length=1)
+    question: str = Field(min_length=1)
+    score: Annotated[StrictInt, Field(ge=0, le=2)] | None = None
+    maximum_score: Literal[2] = 2
+    reason: str = Field(min_length=1)
+
+
 class CriterionScore(Contract):
     criterion: str
+    name: str = Field(min_length=1)
+    sub_criteria: dict[str, SubCriterionScore]
     score: Annotated[StrictInt, Field(ge=0, le=10)] | None = None
     maximum_score: Literal[10] = 10
     reason: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_sub_criteria(self):
+        rubric = CRITERIA_BY_ID.get(self.criterion)
+        if rubric is None:
+            raise ValueError("Unknown criterion")
+        if self.name != rubric.title:
+            raise ValueError("Criterion name does not match rubric")
+        if set(self.sub_criteria) != {question.name for question in rubric.questions}:
+            raise ValueError("Criterion must contain its five registered sub-criteria")
+        for question in rubric.questions:
+            item = self.sub_criteria[question.name]
+            if item.name != question.title or item.question != question.text:
+                raise ValueError("Sub-criterion metadata does not match rubric")
+        scores = [item.score for item in self.sub_criteria.values()]
+        if self.score is None:
+            if any(score is not None for score in scores):
+                raise ValueError("Failed criterion cannot contain sub-criterion scores")
+        elif any(score is None for score in scores) or sum(scores) != self.score:
+            raise ValueError("Criterion score must equal the sum of sub-criteria")
+        return self
 
 
 class FinalSynthesis(Contract):

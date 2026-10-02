@@ -7,7 +7,7 @@ from typing import Any
 
 OBJECTIVE_DETAILS = {
     "attempt", "delay_seconds", "duration_seconds", "error_code", "error_reason",
-    "execution_status", "next_attempt", "retry_kind", "score", "status",
+    "execution_status", "next_attempt", "question_id", "retry_kind", "score", "status",
 }
 
 

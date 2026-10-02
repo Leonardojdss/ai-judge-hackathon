@@ -3,7 +3,8 @@ from src.workflow_agentic.tools.repository_tools import TERMS, exclusion_reason,
 
 
 def build_context(provider, tree: list[dict], initial: dict[str, str]) -> dict:
-    files = dict(initial)
+    files = {path: content for path, content in initial.items()
+             if exclusion_reason(path) is None}
     omitted = []
     eligible = []
     total_bytes = sum(len(s.encode()) for s in files.values())

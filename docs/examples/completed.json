@@ -9,54 +9,396 @@
   "criteria": [
     {
       "criterion": "software_architecture",
+      "name": "Arquitetura — Design e separação de responsabilidades",
+      "sub_criteria": {
+        "separation_of_responsibilities": {
+          "name": "Separação de responsabilidades",
+          "question": "A solução possui uma separação clara de responsabilidades entre seus componentes?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "code_organization_modularity": {
+          "name": "Organização e modularização do código",
+          "question": "O código apresenta organização, modularização e legibilidade adequadas?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "component_coupling": {
+          "name": "Acoplamento entre componentes",
+          "question": "A solução apresenta baixo acoplamento entre seus principais componentes?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "architectural_fit": {
+          "name": "Adequação da arquitetura ao problema",
+          "question": "A arquitetura escolhida é coerente com o problema e com os requisitos da solução?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "architectural_patterns": {
+          "name": "Consistência dos padrões arquiteturais",
+          "question": "A solução utiliza padrões de arquitetura/engenharia de forma consistente?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        }
+      },
       "score": 10,
       "maximum_score": 10,
       "reason": "A solução separa responsabilidades e mantém interfaces claras entre componentes nos arquivos analisados."
     },
     {
       "criterion": "scalability",
+      "name": "Escalabilidade",
+      "sub_criteria": {
+        "request_volume_growth": {
+          "name": "Crescimento de usuários e requisições",
+          "question": "A solução permite aumento do volume de usuários/requisições sem reconstrução completa da arquitetura?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "independent_component_scaling": {
+          "name": "Escalabilidade independente dos componentes",
+          "question": "A solução permite escalar independentemente os componentes que possuem maior demanda?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "data_volume_growth": {
+          "name": "Crescimento do volume de dados",
+          "question": "A solução considera crescimento do volume de dados?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "processing_bottlenecks": {
+          "name": "Gargalos de processamento",
+          "question": "A solução evita gargalos evidentes de processamento?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "external_integration_scalability": {
+          "name": "Escalabilidade das integrações externas",
+          "question": "Integrações e dependências externas são utilizadas de maneira compatível com aumento de escala?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 6,
       "maximum_score": 10,
       "reason": "Há processamento assíncrono e paginação, mas a aplicação ainda precisa escalar como uma unidade."
     },
     {
       "criterion": "resilience_availability",
+      "name": "Resiliência e disponibilidade",
+      "sub_criteria": {
+        "exception_handling": {
+          "name": "Tratamento de exceções e falhas",
+          "question": "A solução possui tratamento adequado de exceções e falhas?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "transient_failure_retries": {
+          "name": "Retry para falhas transitórias",
+          "question": "A solução implementa retry para operações sujeitas a falhas transitórias?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "external_operation_timeouts": {
+          "name": "Timeout em operações externas",
+          "question": "A solução utiliza timeout em chamadas externas ou operações potencialmente bloqueantes?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "fallback_degraded_behavior": {
+          "name": "Fallback e comportamento degradado",
+          "question": "A solução possui fallback ou comportamento degradado quando uma dependência fica indisponível?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "idempotency_duplicate_prevention": {
+          "name": "Idempotência e prevenção de duplicidade",
+          "question": "A solução considera idempotência ou prevenção de efeitos duplicados quando aplicável?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 8,
       "maximum_score": 10,
       "reason": "Existem timeout, retry com backoff e fallback; a prevenção de efeitos duplicados é parcial."
     },
     {
       "criterion": "guardrails_security",
+      "name": "Guardrails e segurança",
+      "sub_criteria": {
+        "guardrail_implementation": {
+          "name": "Implementação de guardrail",
+          "question": "O grupo fez um guardrail? Pode ser de bloqueio/liberação, ou pode ser integrado ao prompt do agente principal",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "common_attack_protection": {
+          "name": "Proteção contra ataques comuns",
+          "question": "O agente tem alguma proteção contra ataques comuns (prompt injection, jailbreak, coding)?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "social_engineering_protection": {
+          "name": "Proteção contra engenharia social",
+          "question": "O agente tem alguma proteção contra ataques de engenharia social (persona, motivo nobre, apelo emocional)?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "bias_mitigation": {
+          "name": "Mitigação de vieses",
+          "question": "O grupo tentou mitigar vieses na resposta do agente? (viés de gênero, racial, etc)",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "sensitive_topic_handling": {
+          "name": "Tratamento de temas sensíveis",
+          "question": "O grupo fez algum tratamento da resposta quando a temas sensíveis como saúde, apostas, religião e política?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 7,
       "maximum_score": 10,
       "reason": "O guardrail bloqueia ataques e trata temas sensíveis, mas faltam exemplos bancários para alguns ataques."
     },
     {
       "criterion": "genai_design",
+      "name": "Design da solução GenAI",
+      "sub_criteria": {
+        "genai_approach_fit": {
+          "name": "Adequação da abordagem GenAI",
+          "question": "A abordagem de GenAI escolhida é adequada ao problema?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "model_suitability": {
+          "name": "Adequação do modelo de IA",
+          "question": "O modelo de IA utilizado é adequado à tarefa?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "prompt_structure": {
+          "name": "Estrutura dos prompts",
+          "question": "Os prompts/instruções dos modelos estão estruturados adequadamente?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "agent_tool_responsibilities": {
+          "name": "Responsabilidades de agentes e ferramentas",
+          "question": "Quando existem agentes ou ferramentas, suas responsabilidades estão claramente definidas?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "output_control_validation": {
+          "name": "Controle e validação das saídas",
+          "question": "O fluxo GenAI possui mecanismos para controlar e validar suas saídas?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 8,
       "maximum_score": 10,
       "reason": "Prompts, ferramentas e validação de saída estão integrados; a escolha do modelo carece de justificativa."
     },
     {
       "criterion": "data_quality",
+      "name": "Qualidade e preparação dos dados",
+      "sub_criteria": {
+        "data_source_suitability": {
+          "name": "Adequação das fontes de dados",
+          "question": "As fontes de dados utilizadas são adequadas ao problema?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "data_quality_cleaning": {
+          "name": "Qualidade e limpeza dos dados",
+          "question": "Existe tratamento de qualidade e limpeza dos dados?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "data_representativeness": {
+          "name": "Representatividade dos dados",
+          "question": "A representatividade dos dados foi considerada?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "data_bias": {
+          "name": "Vieses nos dados",
+          "question": "A solução considera possíveis vieses presentes nos dados?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "data_leakage_prevention": {
+          "name": "Prevenção de data leakage",
+          "question": "A solução evita data leakage ou utilização indevida de informações?",
+          "score": 0,
+          "maximum_score": 2,
+          "reason": "Não há evidência suficiente no exemplo para pontuar este subcritério."
+        }
+      },
       "score": 4,
       "maximum_score": 10,
       "reason": "As fontes são identificáveis e há limpeza básica, porém representatividade e vieses têm pouca análise."
     },
     {
       "criterion": "metrics_evaluation",
+      "name": "Métricas e avaliação",
+      "sub_criteria": {
+        "objective_metrics": {
+          "name": "Métricas objetivas",
+          "question": "A solução possui métricas objetivas para avaliar seu desempenho?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "metric_relevance": {
+          "name": "Coerência das métricas",
+          "question": "As métricas escolhidas são coerentes com o problema?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "reproducible_evaluation": {
+          "name": "Processo reproduzível de avaliação",
+          "question": "Existe um processo reproduzível de avaliação?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "result_interpretation": {
+          "name": "Interpretação dos resultados",
+          "question": "Os resultados das métricas são interpretados adequadamente?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "scenario_coverage": {
+          "name": "Cobertura de cenários",
+          "question": "A avaliação considera diferentes cenários relevantes da solução?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 6,
       "maximum_score": 10,
       "reason": "Existem métricas e casos reproduzíveis; a interpretação dos resultados e os cenários extremos são parciais."
     },
     {
       "criterion": "efficiency_cost",
+      "name": "Eficiência e custo",
+      "sub_criteria": {
+        "model_cost_capacity": {
+          "name": "Relação entre capacidade e custo do modelo",
+          "question": "A escolha dos modelos considera a relação entre capacidade e custo?",
+          "score": 2,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem integralmente a este subcritério."
+        },
+        "unnecessary_external_calls": {
+          "name": "Chamadas desnecessárias a modelos e serviços",
+          "question": "A solução evita chamadas desnecessárias aos modelos ou serviços externos?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "token_context_consumption": {
+          "name": "Consumo de tokens e contexto",
+          "question": "Existe preocupação com consumo de tokens/contexto?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "flow_latency": {
+          "name": "Latência do fluxo",
+          "question": "A solução considera latência no desenho do fluxo?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "cost_benefit": {
+          "name": "Relação entre custo e benefício",
+          "question": "Existe uma relação coerente entre custo computacional e benefício entregue?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 6,
       "maximum_score": 10,
       "reason": "O fluxo reutiliza resultados e usa streaming; faltam controles consistentes de contexto e custo."
     },
     {
       "criterion": "technical_innovation",
+      "name": "Inovação técnica",
+      "sub_criteria": {
+        "differentiated_approach": {
+          "name": "Abordagem técnica diferenciada",
+          "question": "A solução apresenta uma abordagem técnica diferenciada para resolver o problema?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "creative_technology_combination": {
+          "name": "Combinação criativa de tecnologias",
+          "question": "Existe combinação criativa de tecnologias ou técnicas?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "technical_justification": {
+          "name": "Justificativa técnica da inovação",
+          "question": "A inovação apresentada possui justificativa técnica?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "measurable_benefit": {
+          "name": "Benefício mensurável ou demonstrável",
+          "question": "A inovação gera benefício mensurável ou demonstrável para a solução?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        },
+        "proprietary_implementation": {
+          "name": "Implementação técnica própria",
+          "question": "A solução possui implementação técnica própria relevante além da simples integração de componentes prontos?",
+          "score": 1,
+          "maximum_score": 2,
+          "reason": "As evidências do exemplo atendem parcialmente a este subcritério."
+        }
+      },
       "score": 5,
       "maximum_score": 10,
       "reason": "Há lógica própria e combinação de técnicas; o benefício da inovação ainda é pouco demonstrado."

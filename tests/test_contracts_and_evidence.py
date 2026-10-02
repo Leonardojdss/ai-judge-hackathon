@@ -1,7 +1,9 @@
 import pytest
 from pydantic import ValidationError
 
-from src.adapters.schemas.repository_assessment import AssessmentResult, RepositoryAssessmentRequest
+from src.adapters.schemas.repository_assessment import (AssessmentResult, CriterionScore,
+                                                        RepositoryAssessmentRequest)
+from src.utils.rubric import CRITERIA_BY_ID
 from src.workflow_agentic.agents.evidence import prepare_context, safe_lines, validate_evidence
 from src.utils.prompts import PROMPTS
 
@@ -68,6 +70,41 @@ def test_evidence_canonicalizes_unique_line_and_whitespace():
     assert result.questions[0].evidence[0].snippet == "    value = 42\n    return value"
 
 
+def test_evidence_accepts_literal_expression_inside_source_line():
+    files = {"src/main.py": 'model = ChatOpenAI(model="gpt-4.1-mini")'}
+    presented = {"src/main.py": {1: files["src/main.py"]}}
+    result = AssessmentResult.model_validate(
+        assessment_result(
+            "software_architecture",
+            1,
+            snippet='ChatOpenAI(model="gpt-4.1-mini")',
+            line=1,
+        )
+    )
+
+    validate_evidence(result, "software_architecture", presented, files)
+
+    evidence = result.questions[0].evidence[0]
+    assert evidence.line == 1
+    assert evidence.snippet == files["src/main.py"]
+
+
+def test_evidence_rejects_non_literal_expression_inside_source_line():
+    files = {"src/main.py": 'model = ChatOpenAI(model="gpt-4.1-mini")'}
+    presented = {"src/main.py": {1: files["src/main.py"]}}
+    result = AssessmentResult.model_validate(
+        assessment_result(
+            "software_architecture",
+            1,
+            snippet='ChatOpenAI(model="gpt-4.1")',
+            line=1,
+        )
+    )
+
+    with pytest.raises(ValueError, match="evidence_snippet_not_found"):
+        validate_evidence(result, "software_architecture", presented, files)
+
+
 def test_evidence_rejects_ambiguous_canonical_match():
     files = {"src/main.py": "validate()\nvalidate()"}
     presented = {"src/main.py": {1: "validate()", 2: "validate()"}}
@@ -126,3 +163,35 @@ def test_context_presents_all_safe_lines_without_budget_cutoff():
     assert coverage["omitted_from_prompt"] == []
     assert coverage["lines_presented"] == 30 * 501
     assert "src/file29.py" in context
+
+
+def test_public_criterion_score_must_equal_its_five_sub_criteria():
+    rubric = CRITERIA_BY_ID["software_architecture"]
+    sub_criteria = {
+        question.name: {
+            "name": question.title,
+            "question": question.text,
+            "score": 1,
+            "maximum_score": 2,
+            "reason": "Atendimento parcial demonstrado.",
+        }
+        for question in rubric.questions
+    }
+
+    result = CriterionScore(
+        criterion=rubric.id,
+        name=rubric.title,
+        sub_criteria=sub_criteria,
+        score=5,
+        reason="Soma determinística dos subcritérios.",
+    )
+    assert result.score == 5
+
+    with pytest.raises(ValidationError, match="sum of sub-criteria"):
+        CriterionScore(
+            criterion=rubric.id,
+            name=rubric.title,
+            sub_criteria=sub_criteria,
+            score=4,
+            reason="Total inconsistente.",
+        )
